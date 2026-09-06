@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>XAU/USD v2 — Multi-Source Commander</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #070a11;
+            --bg-card: #0c111f;
+            --bg-card-hover: #111a2a;
+            --gold: #f0c75e;
+            --gold-dim: #c9a040;
+            --gold-glow: rgba(240, 199, 94, 0.15);
+            --text-primary: #f0f2f8;
+            --text-secondary: #8a94a6;
+            --text-muted: #4d5668;
+            --border: #1a2340;
+            --green: #3dd68c;
+            --green-dim: #1f7a4e;
+            --red: #f25c7a;
+            --red-dim: #8a2e44;
+            --grey: #6a7a8e;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --radius: 12px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--font);
+            padding: 14px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            line-height: 1.5;
+        }
+
+        .dashboard {
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logo span {
+            color: var(--text-primary);
+            font-weight: 300;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            background: var(--bg-card);
+            padding: 4px 14px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            letter-spacing: 0.2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            font-size: 11px;
+            padding: 4px 14px;
+            border-radius: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            background: var(--green);
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+        }
+
+        .timezone-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            padding: 4px 12px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        /* BUTTONS */
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 7px 18px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            font-family: var(--font);
+        }
+
+        .btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--gold-dim);
+            color: var(--gold);
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--bg);
+            border-color: var(--gold);
+        }
+
+        .btn-gold:hover {
+            background: var(--gold-dim);
+            border-color: var(--gold-dim);
+            color: var(--bg);
+        }
+
+        .btn-sm {
+            padding: 5px 14px;
+            font-size: 11px;
+        }
+
+        /* GRID – 8 CARDS */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 14px 12px 14px;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(240, 199, 94, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-source {
+            font-size: 8px;
+            color: var(--text-muted);
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0.2px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1px 8px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .card-value {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+
+        .card-change {
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-change.up {
+            color: var(--green);
+        }
+        .card-change.down {
+            color: var(--red);
+        }
+        .card-change.neutral {
+            color: var(--grey);
+        }
+
+        .card .mini-chart {
+            height: 2px;
+            width: 100%;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .card .mini-chart .bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .card .mini-chart .bar.bull {
+            background: var(--green);
+        }
+        .card .mini-chart .bar.bear {
+            background: var(--red);
+        }
+        .card .mini-chart .bar.neutral {
+            background: var(--grey);
+        }
+
+        /* VERDICT BOX */
+        .verdict-section {
+            display: grid;
+            grid-template-columns: 1fr 1.8fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .verdict-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: border-color 0.4s ease;
+        }
+
+        .verdict-box.bull {
+            border-color: var(--green);
+            box-shadow: 0 0 30px rgba(61, 214, 140, 0.06);
+        }
+        .verdict-box.bear {
+            border-color: var(--red);
+            box-shadow: 0 0 30px rgba(242, 92, 122, 0.06);
+        }
+        .verdict-box.neutral {
+            border-color: var(--grey);
+        }
+
+        .verdict-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .verdict-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 4px 0 6px 0;
+        }
+
+        .verdict-title {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .verdict-title.bull {
+            color: var(--green);
+        }
+        .verdict-title.bear {
+            color: var(--red);
+        }
+        .verdict-title.neutral {
+            color: var(--grey);
+        }
+
+        .verdict-score {
+            font-size: 14px;
+            color: var(--text-secondary);
+            background: var(--bg);
+            padding: 2px 14px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        .verdict-reason {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .confidence-wrap {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .confidence-track {
+            flex: 1;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.6s ease;
+            background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+            width: 50%;
+        }
+
+        .confidence-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gold);
+            min-width: 48px;
+            text-align: right;
+        }
+
+        /* Right side of verdict: quick stats */
+        .verdict-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            padding: 6px 0;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 3px 0;
+        }
+
+        .stat-item .stat-val {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .stat-item .stat-val.bull {
+            color: var(--green);
+        }
+        .stat-item .stat-val.bear {
+            color: var(--red);
+        }
+
+        /* TABLE MATRIX */
+        .matrix-section {
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .matrix-table th {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .matrix-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .matrix-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .matrix-table .source-cell {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .matrix-table .impact-bull {
+            color: var(--green);
+            font-weight: 600;
+        }
+        .matrix-table .impact-bear {
+            color: var(--red);
+            font-weight: 600;
+        }
+        .matrix-table .impact-neutral {
+            color: var(--grey);
+            font-weight: 600;
+        }
+
+        .matrix-table .signal-bull {
+            color: var(--green);
+            font-weight: 700;
+        }
+        .matrix-table .signal-bear {
+            color: var(--red);
+            font-weight: 700;
+        }
+        .matrix-table .signal-neutral {
+            color: var(--grey);
+            font-weight: 700;
+        }
+
+        .weight-badge {
+            background: var(--bg);
+            padding: 2px 10px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+
+        /* CALENDAR */
+        .calendar-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .calendar-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .calendar-header h3 small {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .calendar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .calendar-event {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 18px;
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            border-left: 3px solid var(--gold);
+            font-size: 13px;
+        }
+
+        .calendar-event .ev-time {
+            font-weight: 600;
+            color: var(--gold);
+            min-width: 70px;
+            font-size: 12px;
+        }
+
+        .calendar-event .ev-title {
+            font-weight: 500;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .calendar-event .ev-impact {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--red);
+            background: rgba(242, 92, 122, 0.12);
+            padding: 1px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(242, 92, 122, 0.2);
+        }
+
+        .calendar-event .ev-impact.high {
+            color: var(--red);
+            border-color: rgba(242, 92, 122, 0.3);
+            background: rgba(242, 92, 122, 0.12);
+        }
+
+        .calendar-event .ev-forecast {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .calendar-empty {
+            color: var(--text-secondary);
+            font-size: 13px;
+            padding: 12px 0;
+            text-align: center;
+        }
+
+        /* FOOTER / FRED KEY */
+        .footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 0 8px 0;
+            border-top: 1px solid var(--border);
+            margin-top: 6px;
+        }
+
+        .fred-setup {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fred-setup label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .fred-setup input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 7px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-family: var(--font);
+            width: 220px;
+            max-width: 100%;
+            transition: border-color 0.2s;
+        }
+
+        .fred-setup input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .fred-setup .hint {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .fred-setup .hint a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+
+        .fred-setup .hint a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-attribution {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: right;
+            line-height: 1.6;
+        }
+
+        .footer-attribution strong {
+            color: var(--text-secondary);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .verdict-section {
+                grid-template-columns: 1fr;
+            }
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .header-left {
+                justify-content: center;
+            }
+            .header-right {
+                justify-content: center;
+            }
+            .logo {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 550px) {
+            body {
+                padding: 8px;
+            }
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .card {
+                padding: 10px 10px 10px 10px;
+            }
+            .card-value {
+                font-size: 18px;
+            }
+            .card-label {
+                font-size: 9px;
+            }
+            .card-source {
+                font-size: 7px;
+                padding: 0 6px;
+            }
+            .verdict-title {
+                font-size: 20px;
+            }
+            .verdict-box {
+                padding: 14px 16px;
+            }
+            .matrix-table {
+                font-size: 11px;
+            }
+            .matrix-table th,
+            .matrix-table td {
+                padding: 6px 8px;
+            }
+            .calendar-event {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .fred-setup input {
+                width: 140px;
+            }
+            .footer {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .footer-attribution {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .card-value {
+                font-size: 15px;
+            }
+            .btn {
+                font-size: 10px;
+                padding: 5px 12px;
+            }
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* loading shimmer */
+        .shimmer {
+            background: linear-gradient(90deg, var(--bg-card) 30%, var(--bg-card-hover) 60%, var(--bg-card) 90%);
+            background-size: 200% 100%;
+            animation: shimmer 1.8s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .last-updated {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard" id="app">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">XAU/USD <span>v2</span></div>
+                <span class="subtitle">⚡ Multi-Source Commander</span>
+            </div>
+            <div class="header-right">
+                <span class="timezone-label">🕐 SAST (GMT+2)</span>
+                <span class="status-badge"><span class="status-dot"></span> Live</span>
+                <button class="btn btn-gold btn-sm" id="refreshBtn">⟳ Refresh All</button>
+            </div>
+        </header>
+
+        <!-- 8-CARD GRID -->
+        <div class="card-grid" id="cardGrid">
+            <!-- Cards injected by JS -->
+        </div>
+
+        <!-- VERDICT + STATS -->
+        <div class="verdict-section">
+            <div class="verdict-box neutral" id="verdictBox">
+                <div class="verdict-label">📊 Verdict</div>
+                <div class="verdict-main">
+                    <span class="verdict-title neutral" id="verdictTitle">—</span>
+                    <span class="verdict-score" id="verdictScore">Score: 0</span>
+                </div>
+                <div class="verdict-reason" id="verdictReason">Initializing …</div>
+                <div class="confidence-wrap">
+                    <div class="confidence-track">
+                        <div class="confidence-fill" id="confidenceFill" style="width:50%;"></div>
+                    </div>
+                    <span class="confidence-label" id="confidenceLabel">50%</span>
+                </div>
+            </div>
+            <div class="verdict-box" style="border-color:var(--border);">
+                <div class="verdict-label">📈 Factor Snapshots</div>
+                <div class="verdict-stats" id="factorStats">
+                    <div class="stat-item"><span>DXY Impact</span><span class="stat-val" id="statDxy">—</span></div>
+                    <div class="stat-item"><span>Real Yield</span><span class="stat-val" id="statYield">—</span></div>
+                    <div class="stat-item"><span>CPI Signal</span><span class="stat-val" id="statCpi">WAIT</span></div>
+                    <div class="stat-item"><span>Risk / VIX</span><span class="stat-val" id="statRisk">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MATRIX TABLE -->
+        <div class="matrix-section">
+            <table class="matrix-table" id="matrixTable">
+                <thead>
+                    <tr>
+                        <th>Fundamental (Source)</th>
+                        <th>Live Value</th>
+                        <th>Impact</th>
+                        <th>Signal for Gold</th>
+                        <th>Weight</th>
+                    </tr>
+                </thead>
+                <tbody id="matrixBody">
+                    <!-- injected -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CALENDAR -->
+        <div class="calendar-section" id="calendarSection">
+            <div class="calendar-header">
+                <h3>📅 Economic Calendar <small>USD High Impact · next 6 events</small></h3>
+                <span style="font-size:11px;color:var(--text-muted);" id="calTimestamp">loading…</span>
+            </div>
+            <div class="calendar-list" id="calendarList">
+                <div class="calendar-empty">Loading calendar …</div>
+            </div>
+        </div>
+
+        <!-- FOOTER / FRED KEY -->
+        <div class="footer">
+            <div class="fred-setup">
+                <label>🔑 FRED API Key</label>
+                <input type="text" id="fredKeyInput" placeholder="Paste your FRED API key" autocomplete="off">
+                <button class="btn btn-sm" id="saveFredKeyBtn">Save</button>
+                <span class="hint"><a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank">Get free key</a></span>
+                <span id="fredStatus" style="font-size:11px;color:var(--text-muted);"></span>
+            </div>
+            <div class="footer-attribution">
+                <strong>Multi-Source</strong> · Yahoo Finance API · FRED St. Louis Fed · ForexFactory · TradingEconomics (fallback)<br>
+                All times SAST (GMT+2) · Auto-refresh 60s prices · 5min calendar
+            </div>
+        </div>
+
+        <div class="last-updated" id="lastUpdated">Last updated: —</div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  XAU/USD v2 — Multi-Source Fundamental Commander
+        //  Single-file dashboard. No external libs.
+        // ============================================================
+
+        (function() {
+            'use strict';
+
+            // -------- CONFIG --------
+            const CONFIG = {
+                yahooSymbols: {
+                    gold: 'GC=F',
+                    dxy: 'DX-Y.NYB',
+                    tnx: '^TNX',
+                    audusd: 'AUDUSD=X',
+                    vix: '^VIX'
+                },
+                fredSeries: {
+                    dgs10: 'DGS10',
+                    dtwexbgs: 'DTWEXBGS',
+                    dfii10: 'DFII10',
+                    t10yie: 'T10YIE',
+                    cpiaucsl: 'CPIAUCSL',
+                    fedfunds: 'FEDFUNDS'
+                },
+                proxy: 'https://api.allorigins.win/raw?url=',
+                fredBase: 'https://api.stlouisfed.org/fred/series/observations',
+                calendarUrl: 'https://nfs.faireconomy.media/ff_calendar_thisweek.xml',
+                refreshPricesMs: 60000,
+                refreshCalendarMs: 300000,
+                fallbackEvents: [
+                    { time: '15:30', title: 'US CPI / NFP / PPI', impact: 'High' },
+                    { time: '21:00', title: 'FOMC / Powell Speech', impact: 'High' },
+                    { time: '09:00', title: 'China Open (Gold impact)', impact: 'High' }
+                ]
+            };
+
+            // -------- STATE --------
+            const state = {
+                yahoo: {}, // { gold: { price, change, changePercent, source }, ... }
+                fred: {}, // { dgs10: { value, change, source }, ... }
+                calendar: [], // array of event objects
+                score: 0,
+                verdict: 'NEUTRAL',
+                confidence: 50,
+                reasoning: '',
+                lastUpdate: null,
+                fredKey: localStorage.getItem('fred_key') || '',
+                loading: false,
+                // computed factors
+                factors: {
+                    dxy: { impact: 0, signal: 'neutral' },
+                    realYield: { impact: 0, signal: 'neutral' },
+                    cpi: { impact: 0, signal: 'neutral' },
+                    risk: { impact: 0, signal: 'neutral' },
+                    newsFear: { impact: 0, signal: 'neutral' }
+                }
+            };
+
+            // -------- DOM REFS --------
+            const $ = id => document.getElementById(id);
+            const cardGrid = $('cardGrid');
+            const verdictBox = $('verdictBox');
+            const verdictTitle = $('verdictTitle');
+            const verdictScore = $('verdictScore');
+            const verdictReason = $('verdictReason');
+            const confidenceFill = $('confidenceFill');
+            const confidenceLabel = $('confidenceLabel');
+            const matrixBody = $('matrixBody');
+            const calendarList = $('calendarList');
+            const calTimestamp = $('calTimestamp');
+            const lastUpdated = $('lastUpdated');
+            const refreshBtn = $('refreshBtn');
+            const fredKeyInput = $('fredKeyInput');
+            const saveFredKeyBtn = $('saveFredKeyBtn');
+            const fredStatus = $('fredStatus');
+            const statDxy = $('statDxy');
+            const statYield = $('statYield');
+            const statCpi = $('statCpi');
+            const statRisk = $('statRisk');
+
+            // -------- HELPERS --------
+            function fmt(v, d = 2) {
+                if (v === undefined || v === null || isNaN(v)) return '—';
+                return Number(v).toFixed(d);
+            }
+
+            function fmtPct(v) {
+                if (v === undefined || v === null || isNaN(v)) return '—';
+                return (v >= 0 ? '+' : '') + fmt(v, 2) + '%';
+            }
+
+            function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+            function getChangeClass(v) {
+                if (v === undefined || v === null || isNaN(v)) return 'neutral';
+                if (v > 0.001) return 'up';
+                if (v < -0.001) return 'down';
+                return 'neutral';
+            }
+
+            function getArrow(v) {
+                if (v === undefined || v === null || isNaN(v)) return '—';
+                if (v > 0.001) return '↑';
+                if (v < -0.001) return '↓';
+                return '→';
+            }
+
+            function getSignalLabel(v, threshold = 0.001) {
+                if (v === undefined || v === null || isNaN(v)) return 'NEUTRAL';
+                if (v > threshold) return 'BULLISH';
+                if (v < -threshold) return 'BEARISH';
+                return 'NEUTRAL';
+            }
+
+            function isBullish(v) { return v !== undefined && v !== null && !isNaN(v) && v > 0.001; }
+
+            function isBearish(v) { return v !== undefined && v !== null && !isNaN(v) && v < -0.001; }
+
+            // -------- SAST TIME HELPERS --------
+            function toSAST(date) {
+                // date is a Date object in GMT; add 2 hours for SAST
+                const d = new Date(date);
+                d.setHours(d.getHours() + 2);
+                return d;
+            }
+
+            function formatTimeSAST(date) {
+                const d = toSAST(date);
+                return d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Africa/Johannesburg' });
+            }
+
+            function formatDateSAST(date) {
+                const d = toSAST(date);
+                return d.toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Johannesburg' });
+            }
+
+            function nowSAST() {
+                const now = new Date();
+                return toSAST(now);
+            }
+
+            // -------- FETCH: YAHOO (via proxy) --------
+            async function fetchYahoo(symbol) {
+                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1h&range=1d`;
+                const proxyUrl = CONFIG.proxy + encodeURIComponent(url);
+                try {
+                    const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const data = await resp.json();
+                    const result = data?.chart?.result?.[0];
+                    if (!result) throw new Error('No result');
+                    const meta = result.meta;
+                    const quote = result.indicators?.quote?.[0];
+                    const closes = quote?.close || [];
+                    const lastClose = closes.length > 0 ? closes[closes.length - 1] : null;
+                    const price = meta.regularMarketPrice;
+                    const prevClose = meta.previousClose;
+                    let change = 0,
+                        changePercent = 0;
+                    if (prevClose && price !== undefined && price !== null) {
+                        change = price - prevClose;
+                        changePercent = (change / prevClose) * 100;
+                    } else if (lastClose !== null && lastClose !== undefined) {
+                        // fallback: use last close from quote
+                        const prev = closes.length > 1 ? closes[closes.length - 2] : null;
+                        if (prev !== null && prev !== undefined && prev !== 0) {
+                            change = lastClose - prev;
+                            changePercent = (change / prev) * 100;
+                        }
+                    }
+                    return {
+                        price: price !== undefined && price !== null ? price : (lastClose || 0),
+                        change: change,
+                        changePercent: changePercent,
+                        source: 'Yahoo Finance API',
+                        symbol: symbol
+                    };
+                } catch (e) {
+                    console.warn(`Yahoo fetch error for ${symbol}:`, e.message);
+                    return null;
+                }
+            }
+
+            // -------- FETCH: FRED (with API key) --------
+            async function fetchFRED(seriesId, apiKey) {
+                if (!apiKey) return null;
+                const url = `${CONFIG.fredBase}?series_id=${seriesId}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=2`;
+                try {
+                    const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const data = await resp.json();
+                    const obs = data?.observations || [];
+                    if (obs.length === 0) return null;
+                    const latest = obs[0];
+                    const prev = obs.length > 1 ? obs[1] : null;
+                    const val = parseFloat(latest.value);
+                    if (isNaN(val)) return null;
+                    let change = 0;
+                    if (prev) {
+                        const prevVal = parseFloat(prev.value);
+                        if (!isNaN(prevVal) && prevVal !== 0) {
+                            change = val - prevVal;
+                        }
+                    }
+                    return {
+                        value: val,
+                        change: change,
+                        changePercent: (change / (parseFloat(obs[1]?.value) || 1)) * 100,
+                        source: `FRED ${seriesId}`,
+                        seriesId: seriesId,
+                        date: latest.date
+                    };
+                } catch (e) {
+                    console.warn(`FRED fetch error for ${seriesId}:`, e.message);
+                    return null;
+                }
+            }
+
+            // -------- FETCH: CALENDAR (ForexFactory XML via proxy) --------
+            async function fetchCalendar() {
+                const proxyUrl = CONFIG.proxy + encodeURIComponent(CONFIG.calendarUrl);
+                try {
+                    const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const text = await resp.text();
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(text, 'text/xml');
+                    const events = xml.querySelectorAll('event');
+                    const results = [];
+                    const now = new Date();
+                    for (const el of events) {
+                        const country = el.querySelector('country')?.textContent || '';
+                        if (country.toUpperCase() !== 'USD') continue;
+                        const impact = el.querySelector('impact')?.textContent || '';
+                        if (impact.toLowerCase() !== 'high') continue;
+                        const title = el.querySelector('title')?.textContent || 'Event';
+                        const dateStr = el.querySelector('date')?.textContent || '';
+                        const timeStr = el.querySelector('time')?.textContent || '';
+                        const forecast = el.querySelector('forecast')?.textContent || '—';
+                        const previous = el.querySelector('previous')?.textContent || '—';
+                        if (!dateStr || !timeStr) continue;
+                        // parse date and time
+                        const [y, m, d] = dateStr.split('-').map(Number);
+                        const timeClean = timeStr.replace(/\s/g, '').toLowerCase();
+                        let hours = 0,
+                            minutes = 0;
+                        const ampm = timeClean.includes('am') ? 'am' : (timeClean.includes('pm') ? 'pm' : '');
+                        const numPart = timeClean.replace(/[ap]m$/, '');
+                        const parts = numPart.split(':');
+                        if (parts.length === 2) {
+                            hours = parseInt(parts[0]) || 0;
+                            minutes = parseInt(parts[1]) || 0;
+                        } else if (parts.length === 1) {
+                            hours = parseInt(parts[0]) || 0;
+                            minutes = 0;
+                        }
+                        if (ampm === 'pm' && hours < 12) hours += 12;
+                        if (ampm === 'am' && hours === 12) hours = 0;
+                        // create GMT date
+                        const eventDate = new Date(Date.UTC(y, m - 1, d, hours, minutes));
+                        if (isNaN(eventDate.getTime())) continue;
+                        // only future events
+                        if (eventDate < now) continue;
+                        results.push({
+                            date: eventDate,
+                            title: title,
+                            impact: impact,
+                            forecast: forecast,
+                            previous: previous,
+                            timeSAST: formatTimeSAST(eventDate),
+                            dateSAST: formatDateSAST(eventDate)
+                        });
+                    }
+                    // sort by date
+                    results.sort((a, b) => a.date - b.date);
+                    return results.slice(0, 6);
+                } catch (e) {
+                    console.warn('Calendar fetch error:', e.message);
+                    // fallback: static TradingEconomics events
+                    return getFallbackCalendar();
+                }
+            }
+
+            function getFallbackCalendar() {
+                const now = new Date();
+                const events = [];
+                for (const ev of CONFIG.fallbackEvents) {
+                    const [h, m] = ev.time.split(':').map(Number);
+                    const d = new Date(now);
+                    d.setHours(h, m, 0, 0);
+                    // if time passed today, set to tomorrow
+                    if (d < now) d.setDate(d.getDate() + 1);
+                    events.push({
+                        date: d,
+                        title: ev.title,
+                        impact: 'High',
+                        forecast: '—',
+                        previous: '—',
+                        timeSAST: formatTimeSAST(d),
+                        dateSAST: formatDateSAST(d),
+                        isFallback: true
+                    });
+                }
+                events.sort((a, b) => a.date - b.date);
+                return events.slice(0, 6);
+            }
+
+            // -------- FETCH ALL --------
+            async function fetchAll() {
+                if (state.loading) return;
+                state.loading = true;
+                refreshBtn.textContent = '⟳ Loading…';
+                refreshBtn.disabled = true;
+
+                try {
+                    // 1. Yahoo in parallel
+                    const yahooPromises = Object.entries(CONFIG.yahooSymbols).map(async ([key, sym]) => {
+                        const result = await fetchYahoo(sym);
+                        return [key, result];
+                    });
+                    const yahooResults = await Promise.all(yahooPromises);
+                    const yahooData = {};
+                    for (const [key, val] of yahooResults) {
+                        if (val) yahooData[key] = val;
+                    }
+                    state.yahoo = yahooData;
+
+                    // 2. FRED if key exists
+                    const fredData = {};
+                    if (state.fredKey) {
+                        const fredPromises = Object.entries(CONFIG.fredSeries).map(async ([key, sid]) => {
+                            const result = await fetchFRED(sid, state.fredKey);
+                            return [key, result];
+                        });
+                        const fredResults = await Promise.all(fredPromises);
+                        for (const [key, val] of fredResults) {
+                            if (val) fredData[key] = val;
+                        }
+                    }
+                    state.fred = fredData;
+
+                    // 3. Calendar
+                    state.calendar = await fetchCalendar();
+
+                    // 4. Compute analysis
+                    computeAnalysis();
+
+                    // 5. Render
+                    renderAll();
+
+                    state.lastUpdate = new Date();
+                    lastUpdated.textContent = 'Last updated: ' + state.lastUpdate.toLocaleTimeString('en-ZA', { hour12: false }) +
+                        ' SAST';
+
+                } catch (e) {
+                    console.error('fetchAll error:', e);
+                    // try to render whatever we have
+                    renderAll();
+                } finally {
+                    state.loading = false;
+                    refreshBtn.textContent = '⟳ Refresh All';
+                    refreshBtn.disabled = false;
+                }
+            }
+
+            // -------- ANALYSIS ENGINE --------
+            function computeAnalysis() {
+                const y = state.yahoo;
+                const f = state.fred;
+
+                // --- DXY (35%) ---
+                let dxyScore = 0;
+                let dxySignal = 'neutral';
+                let dxyVal = null;
+                let dxyChange = 0;
+                // prefer FRED DTWEXBGS, fallback Yahoo DX-Y.NYB
+                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
+                    dxyVal = f.dtwexbgs.value;
+                    dxyChange = f.dtwexbgs.changePercent || 0;
+                } else if (y.dxy && y.dxy.price !== undefined && y.dxy.price !== null) {
+                    dxyVal = y.dxy.price;
+                    dxyChange = y.dxy.changePercent || 0;
+                }
+                if (dxyVal !== null && !isNaN(dxyVal)) {
+                    if (dxyChange < 0) {
+                        dxyScore = 35;
+                        dxySignal = 'bullish';
+                    } else if (dxyChange > 0) {
+                        dxyScore = -35;
+                        dxySignal = 'bearish';
+                    } else {
+                        dxyScore = 0;
+                        dxySignal = 'neutral';
+                    }
+                } else {
+                    dxyScore = 0;
+                    dxySignal = 'neutral';
+                }
+
+                // --- Real Yield (30%) ---
+                let yieldScore = 0;
+                let yieldSignal = 'neutral';
+                let us10yChange = 0;
+                let dfii10Val = null;
+                // get US10Y change from Yahoo ^TNX or FRED DGS10
+                if (y.tnx && y.tnx.changePercent !== undefined && y.tnx.changePercent !== null) {
+                    us10yChange = y.tnx.changePercent;
+                } else if (f.dgs10 && f.dgs10.changePercent !== undefined && f.dgs10.changePercent !== null) {
+                    us10yChange = f.dgs10.changePercent;
+                }
+                // get DFII10 from FRED
+                if (f.dfii10 && f.dfii10.value !== undefined && f.dfii10.value !== null) {
+                    dfii10Val = f.dfii10.value;
+                }
+                // Real Yield condition: US10Y change < 0 OR DFII10 < 1.8%
+                const us10yDown = us10yChange < 0;
+                const dfii10Low = dfii10Val !== null && !isNaN(dfii10Val) && dfii10Val < 1.8;
+                if (us10yDown || dfii10Low) {
+                    yieldScore = 30;
+                    yieldSignal = 'bullish';
+                } else if (us10yChange > 0 && (dfii10Val === null || isNaN(dfii10Val) || dfii10Val >= 1.8)) {
+                    yieldScore = -30;
+                    yieldSignal = 'bearish';
+                } else {
+                    yieldScore = 0;
+                    yieldSignal = 'neutral';
+                }
+
+                // --- CPI (15%) - placeholder WAIT ---
+                let cpiScore = 0;
+                let cpiSignal = 'neutral';
+                // If we have CPI data from FRED, we could use it, but user says WAIT until live CPI
+                // So we keep it neutral
+                cpiScore = 0;
+                cpiSignal = 'neutral';
+
+                // --- Risk: AUD/USD + VIX (10%) ---
+                let riskScore = 0;
+                let riskSignal = 'neutral';
+                let audChange = 0;
+                let vixVal = null;
+                if (y.audusd && y.audusd.changePercent !== undefined && y.audusd.changePercent !== null) {
+                    audChange = y.audusd.changePercent;
+                }
+                if (y.vix && y.vix.price !== undefined && y.vix.price !== null) {
+                    vixVal = y.vix.price;
+                }
+                const audUp = audChange > 0;
+                const vixHigh = vixVal !== null && !isNaN(vixVal) && vixVal > 20;
+                if (audUp || vixHigh) {
+                    riskScore = 10;
+                    riskSignal = 'bullish';
+                } else if (audChange < -0.5 && (vixVal === null || isNaN(vixVal) || vixVal <= 20)) {
+                    riskScore = -10;
+                    riskSignal = 'bearish';
+                } else {
+                    riskScore = 0;
+                    riskSignal = 'neutral';
+                }
+
+                // --- News Fear: VIX > 18 (10%) ---
+                let fearScore = 0;
+                let fearSignal = 'neutral';
+                if (vixVal !== null && !isNaN(vixVal)) {
+                    if (vixVal > 18) {
+                        fearScore = 10;
+                        fearSignal = 'bullish';
+                    } else {
+                        fearScore = -5;
+                        fearSignal = 'bearish';
+                    }
+                } else {
+                    fearScore = 0;
+                    fearSignal = 'neutral';
+                }
+
+                // --- TOTAL SCORE ---
+                const totalScore = dxyScore + yieldScore + cpiScore + riskScore + fearScore;
+                state.score = clamp(totalScore, -100, 100);
+
+                // --- Verdict ---
+                let verdict = 'NEUTRAL';
+                let reasoning = '';
+                let confidence = 50 + Math.abs(state.score) / 2;
+                confidence = clamp(confidence, 0, 100);
+
+                if (state.score >= 30) {
+                    verdict = 'STRONG BUY';
+                    reasoning = 'DXY weak + Real Yield down + Fear up — bullish confluence';
+                } else if (state.score <= -30) {
+                    verdict = 'STRONG SELL';
+                    reasoning = 'DXY strong + Yield up — bearish pressure';
+                } else {
+                    verdict = 'NEUTRAL WAIT';
+                    const reasons = [];
+                    if (dxySignal === 'neutral') reasons.push('DXY mixed');
+                    if (yieldSignal === 'neutral') reasons.push('Yield flat');
+                    if (cpiSignal === 'neutral') reasons.push('CPI pending');
+                    reasoning = reasons.length ? 'Mixed signals: ' + reasons.join(', ') + ' — wait for 15:30 or 21:00 SAST' :
+                        'Mixed signals — wait for 15:30 or 21:00 SAST';
+                }
+
+                state.verdict = verdict;
+                state.reasoning = reasoning;
+                state.confidence = confidence;
+
+                // Store factors for UI
+                state.factors.dxy = { impact: dxyScore, signal: dxySignal };
+                state.factors.realYield = { impact: yieldScore, signal: yieldSignal };
+                state.factors.cpi = { impact: cpiScore, signal: cpiSignal };
+                state.factors.risk = { impact: riskScore, signal: riskSignal };
+                state.factors.newsFear = { impact: fearScore, signal: fearSignal };
+
+                // store raw values for matrix
+                state._dxyVal = dxyVal;
+                state._dxyChange = dxyChange;
+                state._us10yChange = us10yChange;
+                state._dfii10Val = dfii10Val;
+                state._audChange = audChange;
+                state._vixVal = vixVal;
+                state._dgs10Val = f.dgs10?.value ?? null;
+                state._cpiaucslVal = f.cpiaucsl?.value ?? null;
+                state._fedfundsVal = f.fedfunds?.value ?? null;
+                state._tnxVal = y.tnx?.price ?? null;
+                state._goldVal = y.gold?.price ?? null;
+                state._goldChange = y.gold?.changePercent ?? 0;
+            }
+
+            // -------- RENDER --------
+            function renderAll() {
+                renderCards();
+                renderVerdict();
+                renderMatrix();
+                renderCalendar();
+                updateFactorStats();
+            }
+
+            // --- CARDS ---
+            function renderCards() {
+                const y = state.yahoo;
+                const f = state.fred;
+
+                // Build card data
+                const cards = [];
+
+                // 1. XAU/USD
+                const gold = y.gold || {};
+                cards.push({
+                    id: 'gold',
+                    label: 'XAU/USD',
+                    value: gold.price !== undefined && gold.price !== null ? gold.price : '—',
+                    change: gold.changePercent || 0,
+                    source: gold.source || 'Yahoo Finance API',
+                    fmt: 'USD',
+                    decimals: 2
+                });
+
+                // 2. DXY
+                let dxyVal = null,
+                    dxyChange = 0,
+                    dxySource = '—';
+                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
+                    dxyVal = f.dtwexbgs.value;
+                    dxyChange = f.dtwexbgs.changePercent || 0;
+                    dxySource = f.dtwexbgs.source || 'FRED DTWEXBGS';
+                } else if (y.dxy && y.dxy.price !== undefined && y.dxy.price !== null) {
+                    dxyVal = y.dxy.price;
+                    dxyChange = y.dxy.changePercent || 0;
+                    dxySource = y.dxy.source || 'Yahoo Finance API';
+                }
+                cards.push({
+                    id: 'dxy',
+                    label: 'DXY Dollar Index',
+                    value: dxyVal !== null && !isNaN(dxyVal) ? dxyVal : '—',
+                    change: dxyChange,
+                    source: dxySource,
+                    fmt: 'index',
+                    decimals: 3
+                });
+
+                // 3. US10Y Yield
+                let us10yVal = null,
+                    us10yChange = 0,
+                    us10ySource = '—';
+                if (f.dgs10 && f.dgs10.value !== undefined && f.dgs10.value !== null) {
+                    us10yVal = f.dgs10.value;
+                    us10yChange = f.dgs10.changePercent || 0;
+                    us10ySource = f.dgs10.source || 'FRED DGS10';
+                } else if (y.tnx && y.tnx.price !== undefined && y.tnx.price !== null) {
+                    us10yVal = y.tnx.price;
+                    us10yChange = y.tnx.changePercent || 0;
+                    us10ySource = y.tnx.source || 'Yahoo Finance API';
+                }
+                cards.push({
+                    id: 'us10y',
+                    label: 'US10Y Yield DGS10',
+                    value: us10yVal !== null && !isNaN(us10yVal) ? us10yVal : '—',
+                    change: us10yChange,
+                    source: us10ySource,
+                    fmt: 'pct',
+                    decimals: 2
+                });
+
+                // 4. Real Yield (DGS10 - DFII10)
+                let realYieldVal = null,
+                    realYieldChange = 0,
+                    realYieldSource = '—';
+                const dgs10 = f.dgs10?.value;
+                const dfii10 = f.dfii10?.value;
+                if (dgs10 !== undefined && dgs10 !== null && !isNaN(dgs10) &&
+                    dfii10 !== undefined && dfii10 !== null && !isNaN(dfii10)) {
+                    realYieldVal = dgs10 - dfii10;
+                    realYieldSource = 'FRED DGS10-DFII10';
+                    // change is approx the change in spread
+                    const dgs10Prev = f.dgs10?.change || 0;
+                    const dfii10Prev = f.dfii10?.change || 0;
+                    realYieldChange = (dgs10Prev - dfii10Prev) || 0;
+                } else if (f.t10yie && f.t10yie.value !== undefined && f.t10yie.value !== null) {
+                    // fallback to T10YIE
+                    realYieldVal = f.t10yie.value;
+                    realYieldChange = f.t10yie.changePercent || 0;
+                    realYieldSource = f.t10yie.source || 'FRED T10YIE';
+                }
+                cards.push({
+                    id: 'realYield',
+                    label: 'Real Yield (DGS10−DFII10)',
+                    value: realYieldVal !== null && !isNaN(realYieldVal) ? realYieldVal : '—',
+                    change: realYieldChange,
+                    source: realYieldSource,
+                    fmt: 'pct',
+                    decimals: 2
+                });
+
+                // 5. AUD/USD
+                const aud = y.audusd || {};
+                cards.push({
+                    id: 'audusd',
+                    label: 'AUD/USD',
+                    value: aud.price !== undefined && aud.price !== null ? aud.price : '—',
+                    change: aud.changePercent || 0,
+                    source: aud.source || 'Yahoo Finance API',
+                    fmt: 'fx',
+                    decimals: 5
+                });
+
+                // 6. VIX
+                const vix = y.vix || {};
+                cards.push({
+                    id: 'vix',
+                    label: 'VIX Fear Index',
+                    value: vix.price !== undefined && vix.price !== null ? vix.price : '—',
+                    change: vix.changePercent || 0,
+                    source: vix.source || 'Yahoo Finance API',
+                    fmt: 'index',
+                    decimals: 2
+                });
+
+                // 7. CPI
+                let cpiVal = null,
+                    cpiChange = 0,
+                    cpiSource = '—';
+                if (f.cpiaucsl && f.cpiaucsl.value !== undefined && f.cpiaucsl.value !== null) {
+                    cpiVal = f.cpiaucsl.value;
+                    cpiChange = f.cpiaucsl.changePercent || 0;
+                    cpiSource = f.cpiaucsl.source || 'FRED CPIAUCSL';
+                }
+                cards.push({
+                    id: 'cpi',
+                    label: 'CPI (Consumer Price)',
+                    value: cpiVal !== null && !isNaN(cpiVal) ? cpiVal : '—',
+                    change: cpiChange,
+                    source: cpiSource || 'TradingEconomics (fallback)',
+                    fmt: 'index',
+                    decimals: 2
+                });
+
+                // 8. Fed Funds Rate
+                let fedVal = null,
+                    fedChange = 0,
+                    fedSource = '—';
+                if (f.fedfunds && f.fedfunds.value !== undefined && f.fedfunds.value !== null) {
+                    fedVal = f.fedfunds.value;
+                    fedChange = f.fedfunds.changePercent || 0;
+                    fedSource = f.fedfunds.source || 'FRED FEDFUNDS';
+                }
+                cards.push({
+                    id: 'fedfunds',
+                    label: 'Fed Funds Rate',
+                    value: fedVal !== null && !isNaN(fedVal) ? fedVal : '—',
+                    change: fedChange,
+                    source: fedSource || 'FRED (no key)',
+                    fmt: 'pct',
+                    decimals: 2
+                });
+
+                // Render cards
+                let html = '';
+                for (const card of cards) {
+                    const changeClass = getChangeClass(card.change);
+                    const arrow = getArrow(card.change);
+                    const changeStr = card.value !== '—' ? fmtPct(card.change) : '—';
+                    const displayVal = card.value !== '—' ? fmt(card.value, card.decimals) : '—';
+                    const barClass = changeClass === 'up' ? 'bull' : (changeClass === 'down' ? 'bear' : 'neutral');
+                    const barWidth = card.value !== '—' ? clamp(Math.abs(card.change) * 1.5 + 10, 5, 100) : 10;
+
+                    html += `
+                        <div class="card">
+                            <div class="card-label">
+                                <span>${card.label}</span>
+                                <span class="card-source">${card.source}</span>
+                            </div>
+                            <div class="card-value">${displayVal}</div>
+                            <div class="card-change ${changeClass}">${arrow} ${changeStr}</div>
+                            <div class="mini-chart"><div class="bar ${barClass}" style="width:${barWidth}%;"></div></div>
+                        </div>
+                    `;
+                }
+                cardGrid.innerHTML = html;
+            }
+
+            // --- VERDICT ---
+            function renderVerdict() {
+                const v = state.verdict;
+                const score = state.score;
+                const conf = state.confidence;
+
+                verdictBox.className = 'verdict-box';
+                if (v.includes('BUY')) verdictBox.classList.add('bull');
+                else if (v.includes('SELL')) verdictBox.classList.add('bear');
+                else verdictBox.classList.add('neutral');
+
+                verdictTitle.textContent = v;
+                verdictTitle.className = 'verdict-title';
+                if (v.includes('BUY')) verdictTitle.classList.add('bull');
+                else if (v.includes('SELL')) verdictTitle.classList.add('bear');
+                else verdictTitle.classList.add('neutral');
+
+                verdictScore.textContent = `Score: ${score >= 0 ? '+' : ''}${Math.round(score)}`;
+                verdictReason.textContent = state.reasoning || 'Analyzing…';
+
+                confidenceFill.style.width = conf + '%';
+                confidenceLabel.textContent = Math.round(conf) + '%';
+            }
+
+            // --- MATRIX ---
+            function renderMatrix() {
+                const y = state.yahoo;
+                const f = state.fred;
+
+                // Gather data for each row
+                const rows = [];
+
+                // DXY
+                let dxyVal = state._dxyVal;
+                let dxyChange = state._dxyChange;
+                let dxySource = '—';
+                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
+                    dxySource = f.dtwexbgs.source || 'FRED DTWEXBGS';
+                } else if (y.dxy && y.dxy.price !== undefined && y.dxy.price !== null) {
+                    dxySource = y.dxy.source || 'Yahoo Finance API';
+                }
+                const dxySig = state.factors.dxy.signal;
+                rows.push({
+                    name: 'DXY Dollar Index',
+                    source: dxySource,
+                    value: dxyVal !== null && !isNaN(dxyVal) ? fmt(dxyVal, 3) : '—',
+                    impact: state.factors.dxy.impact,
+                    signal: dxySig,
+                    weight: '35%'
+                });
+
+                // Real Yield
+                let ryVal = null;
+                const dgs10 = f.dgs10?.value;
+                const dfii10 = f.dfii10?.value;
+                if (dgs10 !== undefined && dgs10 !== null && !isNaN(dgs10) &&
+                    dfii10 !== undefined && dfii10 !== null && !isNaN(dfii10)) {
+                    ryVal = dgs10 - dfii10;
+                } else if (f.t10yie && f.t10yie.value !== undefined && f.t10yie.value !== null) {
+                    ryVal = f.t10yie.value;
+                }
+                const rySource = f.dgs10?.source ? 'FRED DGS10-DFII10' : (f.t10yie?.source || 'FRED T10YIE');
+                rows.push({
+                    name: 'Real Yield (DGS10−DFII10)',
+                    source: rySource,
+                    value: ryVal !== null && !isNaN(ryVal) ? fmt(ryVal, 2) + '%' : '—',
+                    impact: state.factors.realYield.impact,
+                    signal: state.factors.realYield.signal,
+                    weight: '30%'
+                });
+
+                // CPI
+                let cpiVal = state._cpiaucslVal;
+                let cpiSource = f.cpiaucsl?.source || 'TradingEconomics (fallback)';
+                rows.push({
+                    name: 'CPI (Inflation)',
+                    source: cpiSource,
+                    value: cpiVal !== null && !isNaN(cpiVal) ? fmt(cpiVal, 2) : 'WAIT',
+                    impact: state.factors.cpi.impact,
+                    signal: state.factors.cpi.signal || 'neutral',
+                    weight: '15%'
+                });
+
+                // Risk (AUD/USD + VIX)
+                let audVal = y.audusd?.price;
+                let audSource = y.audusd?.source || 'Yahoo Finance API';
+                let vixVal = state._vixVal;
+                let riskLabel = 'Risk (AUD/VIX)';
+                let riskDisplay = '';
+                if (audVal !== undefined && audVal !== null && !isNaN(audVal)) {
+                    riskDisplay = 'AUD ' + fmt(audVal, 5) + ' | VIX ' + (vixVal !== null && !isNaN(vixVal) ? fmt(vixVal, 2) :
+                    '—');
+                } else {
+                    riskDisplay = 'VIX ' + (vixVal !== null && !isNaN(vixVal) ? fmt(vixVal, 2) : '—');
+                }
+                rows.push({
+                    name: riskLabel,
+                    source: audSource + ' + Yahoo VIX',
+                    value: riskDisplay,
+                    impact: state.factors.risk.impact + state.factors.newsFear.impact,
+                    signal: (state.factors.risk.signal === 'bullish' || state.factors.newsFear.signal === 'bullish') ?
+                        'bullish' : (state.factors.risk.signal === 'bearish' || state.factors.newsFear.signal ===
+                            'bearish') ? 'bearish' : 'neutral',
+                    weight: '10% + 10%'
+                });
+
+                // Build table
+                let html = '';
+                for (const row of rows) {
+                    const sigClass = row.signal === 'bullish' ? 'signal-bull' : (row.signal === 'bearish' ? 'signal-bear' :
+                        'signal-neutral');
+                    const sigLabel = row.signal.toUpperCase();
+                    const impactClass = row.impact > 0 ? 'impact-bull' : (row.impact < 0 ? 'impact-bear' : 'impact-neutral');
+                    const impactLabel = row.impact > 0 ? '+' + Math.round(row.impact) : (row.impact < 0 ? Math.round(row
+                    .impact) : '0');
+                    html += `
+                        <tr>
+                            <td><strong>${row.name}</strong></td>
+                            <td>${row.value}</td>
+                            <td class="${impactClass}">${impactLabel}</td>
+                            <td class="${sigClass}">${sigLabel}</td>
+                            <td><span class="weight-badge">${row.weight}</span></td>
+                        </tr>
+                    `;
+                }
+                matrixBody.innerHTML = html;
+            }
+
+            // --- CALENDAR ---
+            function renderCalendar() {
+                const events = state.calendar;
+                if (!events || events.length === 0) {
+                    calendarList.innerHTML = `<div class="calendar-empty">No upcoming USD High impact events found.</div>`;
+                    calTimestamp.textContent = '—';
+                    return;
+                }
+
+                let html = '';
+                for (const ev of events) {
+                    const isFallback = ev.isFallback || false;
+                    const timeDisplay = ev.timeSAST || formatTimeSAST(ev.date);
+                    const dateDisplay = ev.dateSAST || formatDateSAST(ev.date);
+                    const impactLabel = ev.impact || 'High';
+                    const titleDisplay = ev.title || 'Event';
+                    const forecastDisplay = ev.forecast || '—';
+                    html += `
+                        <div class="calendar-event">
+                            <span class="ev-time">${timeDisplay}</span>
+                            <span class="ev-title">${titleDisplay} ${isFallback ? '📌' : ''}</span>
+                            <span class="ev-impact high">${impactLabel}</span>
+                            <span class="ev-forecast">Forecast: ${forecastDisplay}</span>
+                            <span style="font-size:10px;color:var(--text-muted);">${dateDisplay}</span>
+                            ${isFallback ? '<span style="font-size:9px;color:var(--text-muted);background:var(--bg);padding:0 8px;border-radius:12px;">fallback</span>' : ''}
+                        </div>
+                    `;
+                }
+                calendarList.innerHTML = html;
+
+                const now = nowSAST();
+                calTimestamp.textContent = 'as of ' + now.toLocaleTimeString('en-ZA', { hour12: false }) + ' SAST';
+            }
+
+            // --- FACTOR STATS (right panel) ---
+            function updateFactorStats() {
+                const f = state.factors;
+                const dxyLabel = f.dxy.signal === 'bullish' ? '🟢 BULL' : (f.dxy.signal === 'bearish' ? '🔴 BEAR' : '⚪ NEUTRAL');
+                statDxy.textContent = dxyLabel;
+                statDxy.className = 'stat-val ' + (f.dxy.signal === 'bullish' ? 'bull' : (f.dxy.signal === 'bearish' ? 'bear' :
+                    ''));
+
+                const yieldLabel = f.realYield.signal === 'bullish' ? '🟢 BULL' : (f.realYield.signal === 'bearish' ? '🔴 BEAR' :
+                    '⚪ NEUTRAL');
+                statYield.textContent = yieldLabel;
+                statYield.className = 'stat-val ' + (f.realYield.signal === 'bullish' ? 'bull' : (f.realYield.signal ===
+                    'bearish' ? 'bear' : ''));
+
+                const cpiLabel = f.cpi.signal === 'bullish' ? '🟢 BULL' : (f.cpi.signal === 'bearish' ? '🔴 BEAR' :
+                    '⏳ WAIT');
+                statCpi.textContent = cpiLabel;
+                statCpi.className = 'stat-val ' + (f.cpi.signal === 'bullish' ? 'bull' : (f.cpi.signal === 'bearish' ? 'bear' :
+                    ''));
+
+                const riskCombined = (f.risk.signal === 'bullish' || f.newsFear.signal === 'bullish') ? '🟢 BULL' :
+                    (f.risk.signal === 'bearish' || f.newsFear.signal === 'bearish') ? '🔴 BEAR' : '⚪ NEUTRAL';
+                statRisk.textContent = riskCombined;
+                statRisk.className = 'stat-val ' + ((f.risk.signal === 'bullish' || f.newsFear.signal === 'bullish') ? 'bull' :
+                    (f.risk.signal === 'bearish' || f.newsFear.signal === 'bearish') ? 'bear' : '');
+            }
+
+            // -------- FRED KEY MANAGEMENT --------
+            function saveFredKey() {
+                const key = fredKeyInput.value.trim();
+                if (key) {
+                    localStorage.setItem('fred_key', key);
+                    state.fredKey = key;
+                    fredStatus.textContent = '✅ Key saved';
+                    fredStatus.style.color = 'var(--green)';
+                    // Re-fetch with new key
+                    fetchAll();
+                } else {
+                    localStorage.removeItem('fred_key');
+                    state.fredKey = '';
+                    fredStatus.textContent = '⛔ Key removed';
+                    fredStatus.style.color = 'var(--text-muted)';
+                    fetchAll();
+                }
+                setTimeout(() => { fredStatus.textContent = ''; }, 4000);
+            }
+
+            // -------- INIT --------
+            function init() {
+                // Load FRED key
+                if (state.fredKey) {
+                    fredKeyInput.value = state.fredKey;
+                    fredStatus.textContent = '✅ Key loaded';
+                    fredStatus.style.color = 'var(--green)';
+                }
+
+                // Event listeners
+                refreshBtn.addEventListener('click', fetchAll);
+                saveFredKeyBtn.addEventListener('click', saveFredKey);
+                fredKeyInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') saveFredKey();
+                });
+
+                // Initial fetch
+                fetchAll();
+
+                // Auto-refresh intervals
+                setInterval(() => {
+                    fetchAll();
+                }, CONFIG.refreshPricesMs);
+
+                setInterval(() => {
+                    // refresh calendar only
+                    fetchCalendar().then(events => {
+                        state.calendar = events;
+                        renderCalendar();
+                    }).catch(e => console.warn('Calendar auto-refresh error:', e));
+                }, CONFIG.refreshCalendarMs);
+
+                // Update clock
+                setInterval(() => {
+                    if (state.lastUpdate) {
+                        lastUpdated.textContent = 'Last updated: ' + state.lastUpdate.toLocaleTimeString('en-ZA', {
+                            hour12: false
+                        }) + ' SAST';
+                    }
+                }, 10000);
+            }
+
+            // -------- BOOT --------
+            document.addEventListener('DOMContentLoaded', init);
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                init();
+            }
+
+        })();
+    </script>
+
+</body>
+</html>
