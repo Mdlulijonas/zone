@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>XAU/USD v2 — Multi-Source Commander</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>XAU/USD v2 — Dollar vs Gold Commander</title>
     <style>
         *,
         *::before,
@@ -19,7 +19,7 @@
             --bg-card-hover: #111a2a;
             --gold: #f0c75e;
             --gold-dim: #c9a040;
-            --gold-glow: rgba(240, 199, 94, 0.15);
+            --gold-glow: rgba(240, 199, 94, 0.12);
             --text-primary: #f0f2f8;
             --text-secondary: #8a94a6;
             --text-muted: #4d5668;
@@ -58,10 +58,10 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 0 20px 0;
+            padding: 14px 0 18px 0;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 20px;
-            gap: 12px;
+            margin-bottom: 18px;
+            gap: 10px;
         }
 
         .header-left {
@@ -87,14 +87,12 @@
         }
 
         .subtitle {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
-            font-weight: 400;
             background: var(--bg-card);
             padding: 4px 14px;
             border-radius: 40px;
             border: 1px solid var(--border);
-            letter-spacing: 0.2px;
         }
 
         .header-right {
@@ -147,7 +145,6 @@
             white-space: nowrap;
         }
 
-        /* BUTTONS */
         .btn {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -188,123 +185,150 @@
             font-size: 11px;
         }
 
-        /* GRID – 8 CARDS */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
         }
 
-        .card {
+        /* -------- TOP STRENGTH BANNER -------- */
+        .strength-banner {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .strength-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 14px 14px 12px 14px;
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
+            padding: 16px 18px;
+            text-align: center;
+            transition: border-color 0.4s ease;
         }
 
-        .card:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(240, 199, 94, 0.25);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        .strength-box.bull {
+            border-color: var(--green);
+            box-shadow: 0 0 30px rgba(61, 214, 140, 0.06);
+        }
+        .strength-box.bear {
+            border-color: var(--red);
+            box-shadow: 0 0 30px rgba(242, 92, 122, 0.06);
+        }
+        .strength-box.neutral {
+            border-color: var(--grey);
         }
 
-        .card-label {
-            font-size: 10px;
+        .strength-label {
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             color: var(--text-secondary);
             font-weight: 600;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .card-source {
-            font-size: 8px;
-            color: var(--text-muted);
-            font-weight: 400;
-            text-transform: none;
-            letter-spacing: 0.2px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1px 8px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
+        .strength-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 4px 0 2px 0;
+            letter-spacing: -0.5px;
         }
 
-        .card-value {
-            font-size: 22px;
-            font-weight: 600;
-            letter-spacing: -0.3px;
-            color: var(--text-primary);
-            line-height: 1.2;
-            margin-bottom: 2px;
-        }
-
-        .card-change {
-            font-size: 13px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .card-change.up {
+        .strength-value.bull {
             color: var(--green);
         }
-        .card-change.down {
+        .strength-value.bear {
             color: var(--red);
         }
-        .card-change.neutral {
+        .strength-value.neutral {
             color: var(--grey);
         }
 
-        .card .mini-chart {
-            height: 2px;
-            width: 100%;
-            background: var(--border);
-            border-radius: 4px;
-            margin-top: 8px;
-            overflow: hidden;
+        .strength-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
         }
 
-        .card .mini-chart .bar {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.6s ease;
+        .strength-box .ref {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: block;
+            border-top: 1px solid var(--border);
+            padding-top: 6px;
         }
 
-        .card .mini-chart .bar.bull {
-            background: var(--green);
-        }
-        .card .mini-chart .bar.bear {
-            background: var(--red);
-        }
-        .card .mini-chart .bar.neutral {
-            background: var(--grey);
+        /* -------- GOLD CARD (hero) -------- */
+        .hero-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
         }
 
-        /* VERDICT BOX */
+        .hero-price {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .hero-price .label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .hero-price .value {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .hero-price .change {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .hero-price .change.up {
+            color: var(--green);
+        }
+        .hero-price .change.down {
+            color: var(--red);
+        }
+        .hero-price .change.neutral {
+            color: var(--grey);
+        }
+
+        .hero-source {
+            font-size: 10px;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 4px 14px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+        }
+
+        /* -------- VERDICT -------- */
         .verdict-section {
             display: grid;
-            grid-template-columns: 1fr 1.8fr;
+            grid-template-columns: 1.8fr 1fr;
             gap: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .verdict-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 18px 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            padding: 18px 22px;
             transition: border-color 0.4s ease;
         }
 
@@ -321,7 +345,7 @@
         }
 
         .verdict-label {
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             color: var(--text-secondary);
@@ -333,11 +357,11 @@
             align-items: center;
             gap: 16px;
             flex-wrap: wrap;
-            margin: 4px 0 6px 0;
+            margin: 4px 0 2px 0;
         }
 
         .verdict-title {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
@@ -356,23 +380,28 @@
             font-size: 14px;
             color: var(--text-secondary);
             background: var(--bg);
-            padding: 2px 14px;
+            padding: 2px 16px;
             border-radius: 40px;
             border: 1px solid var(--border);
             font-weight: 500;
         }
 
         .verdict-reason {
-            font-size: 13px;
+            font-size: 14px;
             color: var(--text-secondary);
-            margin-top: 2px;
+            margin: 4px 0 6px 0;
+            line-height: 1.5;
+        }
+
+        .verdict-reason strong {
+            color: var(--text-primary);
         }
 
         .confidence-wrap {
-            margin-top: 8px;
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-top: 6px;
         }
 
         .confidence-track {
@@ -393,44 +422,64 @@
         }
 
         .confidence-label {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--gold);
             min-width: 48px;
             text-align: right;
         }
 
-        /* Right side of verdict: quick stats */
+        /* -------- VERDICT STATS (right) -------- */
         .verdict-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 16px;
-            padding: 6px 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .stat-item {
+        .verdict-stats .stat-row {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
-            color: var(--text-secondary);
+            padding: 5px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            padding: 3px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
 
-        .stat-item .stat-val {
-            color: var(--text-primary);
-            font-weight: 500;
+        .verdict-stats .stat-row:last-child {
+            border-bottom: none;
         }
-        .stat-item .stat-val.bull {
+
+        .verdict-stats .stat-row .stat-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .verdict-stats .stat-row .stat-val.bull {
             color: var(--green);
         }
-        .stat-item .stat-val.bear {
+        .verdict-stats .stat-row .stat-val.bear {
             color: var(--red);
         }
+        .verdict-stats .stat-row .stat-val.neutral {
+            color: var(--grey);
+        }
 
-        /* TABLE MATRIX */
+        .verdict-stats .stat-row .ref-tag {
+            font-size: 8px;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 0 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        /* -------- MATRIX TABLE -------- */
         .matrix-section {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             overflow-x: auto;
         }
 
@@ -451,13 +500,13 @@
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 10px 12px;
+            padding: 10px 14px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
 
         .matrix-table td {
-            padding: 10px 12px;
+            padding: 10px 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             color: var(--text-primary);
             vertical-align: middle;
@@ -467,9 +516,11 @@
             border-bottom: none;
         }
 
-        .matrix-table .source-cell {
-            font-size: 11px;
-            color: var(--text-secondary);
+        .matrix-table .source-ref {
+            font-size: 9px;
+            color: var(--text-muted);
+            display: block;
+            font-weight: 400;
         }
 
         .matrix-table .impact-bull {
@@ -498,9 +549,9 @@
             font-weight: 700;
         }
 
-        .weight-badge {
+        .matrix-table .weight-badge {
             background: var(--bg);
-            padding: 2px 10px;
+            padding: 2px 12px;
             border-radius: 40px;
             font-size: 11px;
             font-weight: 600;
@@ -509,13 +560,13 @@
             display: inline-block;
         }
 
-        /* CALENDAR */
+        /* -------- CALENDAR -------- */
         .calendar-section {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 16px 18px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .calendar-header {
@@ -553,7 +604,7 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 10px 18px;
-            padding: 8px 12px;
+            padding: 8px 14px;
             background: var(--bg);
             border-radius: 8px;
             border-left: 3px solid var(--gold);
@@ -602,7 +653,7 @@
             text-align: center;
         }
 
-        /* FOOTER / FRED KEY */
+        /* -------- FOOTER / FRED KEY -------- */
         .footer {
             display: flex;
             flex-wrap: wrap;
@@ -611,7 +662,7 @@
             gap: 14px;
             padding: 16px 0 8px 0;
             border-top: 1px solid var(--border);
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .fred-setup {
@@ -669,13 +720,20 @@
             color: var(--text-secondary);
         }
 
-        /* RESPONSIVE */
+        .last-updated {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* -------- RESPONSIVE -------- */
         @media (max-width: 900px) {
             .verdict-section {
                 grid-template-columns: 1fr;
             }
-            .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            .strength-banner {
+                grid-template-columns: 1fr 1fr 1fr;
             }
             .header {
                 flex-direction: column;
@@ -691,33 +749,38 @@
             .logo {
                 font-size: 18px;
             }
+            .hero-price .value {
+                font-size: 26px;
+            }
         }
 
-        @media (max-width: 550px) {
+        @media (max-width: 600px) {
             body {
                 padding: 8px;
             }
-            .card-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
+            .strength-banner {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 6px;
             }
-            .card {
-                padding: 10px 10px 10px 10px;
+            .strength-box {
+                padding: 10px 8px;
             }
-            .card-value {
-                font-size: 18px;
-            }
-            .card-label {
-                font-size: 9px;
-            }
-            .card-source {
-                font-size: 7px;
-                padding: 0 6px;
-            }
-            .verdict-title {
+            .strength-value {
                 font-size: 20px;
             }
+            .hero-price .value {
+                font-size: 22px;
+            }
+            .hero-price .change {
+                font-size: 15px;
+            }
+            .verdict-title {
+                font-size: 22px;
+            }
             .verdict-box {
+                padding: 14px 16px;
+            }
+            .verdict-stats {
                 padding: 14px 16px;
             }
             .matrix-table {
@@ -744,21 +807,29 @@
             }
         }
 
-        @media (max-width: 380px) {
-            .card-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
+        @media (max-width: 400px) {
+            .strength-banner {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 4px;
             }
-            .card-value {
-                font-size: 15px;
+            .strength-box {
+                padding: 8px 4px;
+            }
+            .strength-value {
+                font-size: 16px;
+            }
+            .strength-label {
+                font-size: 9px;
+            }
+            .hero-price .value {
+                font-size: 18px;
             }
             .btn {
                 font-size: 10px;
-                padding: 5px 12px;
+                padding: 5px 10px;
             }
         }
 
-        /* scrollbar */
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -774,7 +845,6 @@
             background: var(--text-muted);
         }
 
-        /* loading shimmer */
         .shimmer {
             background: linear-gradient(90deg, var(--bg-card) 30%, var(--bg-card-hover) 60%, var(--bg-card) 90%);
             background-size: 200% 100%;
@@ -791,11 +861,16 @@
             }
         }
 
-        .last-updated {
-            font-size: 10px;
+        .ref-tag-sm {
+            font-size: 8px;
             color: var(--text-muted);
-            text-align: right;
-            margin-top: 4px;
+            background: var(--bg);
+            padding: 0 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: inline-block;
+            margin-left: 4px;
+            font-weight: 400;
         }
     </style>
 </head>
@@ -807,7 +882,7 @@
         <header class="header">
             <div class="header-left">
                 <div class="logo">XAU/USD <span>v2</span></div>
-                <span class="subtitle">⚡ Multi-Source Commander</span>
+                <span class="subtitle">⚡ Dollar vs Gold Commander</span>
             </div>
             <div class="header-right">
                 <span class="timezone-label">🕐 SAST (GMT+2)</span>
@@ -816,15 +891,44 @@
             </div>
         </header>
 
-        <!-- 8-CARD GRID -->
-        <div class="card-grid" id="cardGrid">
-            <!-- Cards injected by JS -->
+        <!-- STRENGTH BANNER: DOLLAR | GOLD | VERDICT -->
+        <div class="strength-banner" id="strengthBanner">
+            <div class="strength-box neutral" id="dollarStrength">
+                <div class="strength-label">💵 DOLLAR</div>
+                <div class="strength-value neutral" id="dollarStrengthVal">—</div>
+                <div class="strength-sub" id="dollarStrengthSub">Loading…</div>
+                <span class="ref">Source: DXY Index</span>
+            </div>
+            <div class="strength-box neutral" id="goldStrength">
+                <div class="strength-label">🥇 GOLD</div>
+                <div class="strength-value neutral" id="goldStrengthVal">—</div>
+                <div class="strength-sub" id="goldStrengthSub">Loading…</div>
+                <span class="ref">Source: XAU/USD (GC=F)</span>
+            </div>
+            <div class="strength-box neutral" id="verdictStrength">
+                <div class="strength-label">⚖️ BIAS</div>
+                <div class="strength-value neutral" id="verdictStrengthVal">—</div>
+                <div class="strength-sub" id="verdictStrengthSub">—</div>
+                <span class="ref">Composite of 4 factors</span>
+            </div>
+        </div>
+
+        <!-- HERO: GOLD PRICE -->
+        <div class="hero-card">
+            <div class="hero-price">
+                <span class="label">XAU/USD</span>
+                <span class="value" id="goldHeroPrice">—</span>
+                <span class="change neutral" id="goldHeroChange">—</span>
+            </div>
+            <div>
+                <span class="hero-source" id="goldHeroSource">Source: Yahoo Finance API</span>
+            </div>
         </div>
 
         <!-- VERDICT + STATS -->
         <div class="verdict-section">
             <div class="verdict-box neutral" id="verdictBox">
-                <div class="verdict-label">📊 Verdict</div>
+                <div class="verdict-label">📊 VERDICT & REASONING</div>
                 <div class="verdict-main">
                     <span class="verdict-title neutral" id="verdictTitle">—</span>
                     <span class="verdict-score" id="verdictScore">Score: 0</span>
@@ -836,14 +940,18 @@
                     </div>
                     <span class="confidence-label" id="confidenceLabel">50%</span>
                 </div>
+                <div style="margin-top:8px;font-size:10px;color:var(--text-muted);">
+                    ⚡ Confidence = 50 + (|Score| / 2) &nbsp;·&nbsp; Based on 4 weighted factors
+                </div>
             </div>
-            <div class="verdict-box" style="border-color:var(--border);">
-                <div class="verdict-label">📈 Factor Snapshots</div>
-                <div class="verdict-stats" id="factorStats">
-                    <div class="stat-item"><span>DXY Impact</span><span class="stat-val" id="statDxy">—</span></div>
-                    <div class="stat-item"><span>Real Yield</span><span class="stat-val" id="statYield">—</span></div>
-                    <div class="stat-item"><span>CPI Signal</span><span class="stat-val" id="statCpi">WAIT</span></div>
-                    <div class="stat-item"><span>Risk / VIX</span><span class="stat-val" id="statRisk">—</span></div>
+            <div class="verdict-stats" id="factorStats">
+                <div class="stat-row"><span>📉 DXY Impact</span><span class="stat-val" id="statDxy">— <span class="ref-tag-sm">Yahoo/FRED</span></span></div>
+                <div class="stat-row"><span>📈 Real Yield</span><span class="stat-val" id="statYield">— <span class="ref-tag-sm">FRED DGS10−DFII10</span></span></div>
+                <div class="stat-row"><span>📊 CPI Signal</span><span class="stat-val" id="statCpi">WAIT <span class="ref-tag-sm">FRED/fallback</span></span></div>
+                <div class="stat-row"><span>⚠️ Risk / VIX</span><span class="stat-val" id="statRisk">— <span class="ref-tag-sm">Yahoo VIX</span></span></div>
+                <div class="stat-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:2px;">
+                    <span style="font-weight:600;color:var(--text-primary);">📌 Sources</span>
+                    <span style="font-size:10px;color:var(--text-muted);">Yahoo · FRED · ForexFactory</span>
                 </div>
             </div>
         </div>
@@ -887,8 +995,8 @@
                 <span id="fredStatus" style="font-size:11px;color:var(--text-muted);"></span>
             </div>
             <div class="footer-attribution">
-                <strong>Multi-Source</strong> · Yahoo Finance API · FRED St. Louis Fed · ForexFactory · TradingEconomics (fallback)<br>
-                All times SAST (GMT+2) · Auto-refresh 60s prices · 5min calendar
+                <strong>Multi‑Source</strong> · Yahoo Finance · FRED St. Louis Fed · ForexFactory · TradingEconomics (fallback)<br>
+                All times SAST (GMT+2) · Auto‑refresh 60s prices · 5min calendar
             </div>
         </div>
 
@@ -897,7 +1005,7 @@
 
     <script>
         // ============================================================
-        //  XAU/USD v2 — Multi-Source Fundamental Commander
+        //  XAU/USD v2 — Dollar vs Gold Commander
         //  Single-file dashboard. No external libs.
         // ============================================================
 
@@ -935,9 +1043,9 @@
 
             // -------- STATE --------
             const state = {
-                yahoo: {}, // { gold: { price, change, changePercent, source }, ... }
-                fred: {}, // { dgs10: { value, change, source }, ... }
-                calendar: [], // array of event objects
+                yahoo: {},
+                fred: {},
+                calendar: [],
                 score: 0,
                 verdict: 'NEUTRAL',
                 confidence: 50,
@@ -945,19 +1053,43 @@
                 lastUpdate: null,
                 fredKey: localStorage.getItem('fred_key') || '',
                 loading: false,
-                // computed factors
                 factors: {
                     dxy: { impact: 0, signal: 'neutral' },
                     realYield: { impact: 0, signal: 'neutral' },
                     cpi: { impact: 0, signal: 'neutral' },
                     risk: { impact: 0, signal: 'neutral' },
                     newsFear: { impact: 0, signal: 'neutral' }
-                }
+                },
+                // raw values for display
+                _dxyVal: null,
+                _dxyChange: 0,
+                _us10yChange: 0,
+                _dfii10Val: null,
+                _audChange: 0,
+                _vixVal: null,
+                _goldVal: null,
+                _goldChange: 0,
+                _dgs10Val: null,
+                _cpiaucslVal: null,
+                _fedfundsVal: null,
+                _tnxVal: null
             };
 
             // -------- DOM REFS --------
             const $ = id => document.getElementById(id);
-            const cardGrid = $('cardGrid');
+            const strengthBanner = $('strengthBanner');
+            const dollarStrength = $('dollarStrength');
+            const dollarStrengthVal = $('dollarStrengthVal');
+            const dollarStrengthSub = $('dollarStrengthSub');
+            const goldStrength = $('goldStrength');
+            const goldStrengthVal = $('goldStrengthVal');
+            const goldStrengthSub = $('goldStrengthSub');
+            const verdictStrength = $('verdictStrength');
+            const verdictStrengthVal = $('verdictStrengthVal');
+            const verdictStrengthSub = $('verdictStrengthSub');
+            const goldHeroPrice = $('goldHeroPrice');
+            const goldHeroChange = $('goldHeroChange');
+            const goldHeroSource = $('goldHeroSource');
             const verdictBox = $('verdictBox');
             const verdictTitle = $('verdictTitle');
             const verdictScore = $('verdictScore');
@@ -1004,20 +1136,7 @@
                 return '→';
             }
 
-            function getSignalLabel(v, threshold = 0.001) {
-                if (v === undefined || v === null || isNaN(v)) return 'NEUTRAL';
-                if (v > threshold) return 'BULLISH';
-                if (v < -threshold) return 'BEARISH';
-                return 'NEUTRAL';
-            }
-
-            function isBullish(v) { return v !== undefined && v !== null && !isNaN(v) && v > 0.001; }
-
-            function isBearish(v) { return v !== undefined && v !== null && !isNaN(v) && v < -0.001; }
-
-            // -------- SAST TIME HELPERS --------
             function toSAST(date) {
-                // date is a Date object in GMT; add 2 hours for SAST
                 const d = new Date(date);
                 d.setHours(d.getHours() + 2);
                 return d;
@@ -1038,7 +1157,7 @@
                 return toSAST(now);
             }
 
-            // -------- FETCH: YAHOO (via proxy) --------
+            // -------- FETCH: YAHOO --------
             async function fetchYahoo(symbol) {
                 const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1h&range=1d`;
                 const proxyUrl = CONFIG.proxy + encodeURIComponent(url);
@@ -1060,7 +1179,6 @@
                         change = price - prevClose;
                         changePercent = (change / prevClose) * 100;
                     } else if (lastClose !== null && lastClose !== undefined) {
-                        // fallback: use last close from quote
                         const prev = closes.length > 1 ? closes[closes.length - 2] : null;
                         if (prev !== null && prev !== undefined && prev !== 0) {
                             change = lastClose - prev;
@@ -1080,7 +1198,7 @@
                 }
             }
 
-            // -------- FETCH: FRED (with API key) --------
+            // -------- FETCH: FRED --------
             async function fetchFRED(seriesId, apiKey) {
                 if (!apiKey) return null;
                 const url = `${CONFIG.fredBase}?series_id=${seriesId}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=2`;
@@ -1115,7 +1233,7 @@
                 }
             }
 
-            // -------- FETCH: CALENDAR (ForexFactory XML via proxy) --------
+            // -------- FETCH: CALENDAR --------
             async function fetchCalendar() {
                 const proxyUrl = CONFIG.proxy + encodeURIComponent(CONFIG.calendarUrl);
                 try {
@@ -1138,7 +1256,6 @@
                         const forecast = el.querySelector('forecast')?.textContent || '—';
                         const previous = el.querySelector('previous')?.textContent || '—';
                         if (!dateStr || !timeStr) continue;
-                        // parse date and time
                         const [y, m, d] = dateStr.split('-').map(Number);
                         const timeClean = timeStr.replace(/\s/g, '').toLowerCase();
                         let hours = 0,
@@ -1155,10 +1272,8 @@
                         }
                         if (ampm === 'pm' && hours < 12) hours += 12;
                         if (ampm === 'am' && hours === 12) hours = 0;
-                        // create GMT date
                         const eventDate = new Date(Date.UTC(y, m - 1, d, hours, minutes));
                         if (isNaN(eventDate.getTime())) continue;
-                        // only future events
                         if (eventDate < now) continue;
                         results.push({
                             date: eventDate,
@@ -1170,12 +1285,10 @@
                             dateSAST: formatDateSAST(eventDate)
                         });
                     }
-                    // sort by date
                     results.sort((a, b) => a.date - b.date);
                     return results.slice(0, 6);
                 } catch (e) {
                     console.warn('Calendar fetch error:', e.message);
-                    // fallback: static TradingEconomics events
                     return getFallbackCalendar();
                 }
             }
@@ -1187,7 +1300,6 @@
                     const [h, m] = ev.time.split(':').map(Number);
                     const d = new Date(now);
                     d.setHours(h, m, 0, 0);
-                    // if time passed today, set to tomorrow
                     if (d < now) d.setDate(d.getDate() + 1);
                     events.push({
                         date: d,
@@ -1212,7 +1324,6 @@
                 refreshBtn.disabled = true;
 
                 try {
-                    // 1. Yahoo in parallel
                     const yahooPromises = Object.entries(CONFIG.yahooSymbols).map(async ([key, sym]) => {
                         const result = await fetchYahoo(sym);
                         return [key, result];
@@ -1224,7 +1335,6 @@
                     }
                     state.yahoo = yahooData;
 
-                    // 2. FRED if key exists
                     const fredData = {};
                     if (state.fredKey) {
                         const fredPromises = Object.entries(CONFIG.fredSeries).map(async ([key, sid]) => {
@@ -1238,13 +1348,9 @@
                     }
                     state.fred = fredData;
 
-                    // 3. Calendar
                     state.calendar = await fetchCalendar();
 
-                    // 4. Compute analysis
                     computeAnalysis();
-
-                    // 5. Render
                     renderAll();
 
                     state.lastUpdate = new Date();
@@ -1253,7 +1359,6 @@
 
                 } catch (e) {
                     console.error('fetchAll error:', e);
-                    // try to render whatever we have
                     renderAll();
                 } finally {
                     state.loading = false;
@@ -1267,12 +1372,22 @@
                 const y = state.yahoo;
                 const f = state.fred;
 
+                // --- store raw values ---
+                state._goldVal = y.gold?.price ?? null;
+                state._goldChange = y.gold?.changePercent ?? 0;
+                state._vixVal = y.vix?.price ?? null;
+                state._audChange = y.audusd?.changePercent ?? 0;
+                state._tnxVal = y.tnx?.price ?? null;
+                state._dgs10Val = f.dgs10?.value ?? null;
+                state._dfii10Val = f.dfii10?.value ?? null;
+                state._cpiaucslVal = f.cpiaucsl?.value ?? null;
+                state._fedfundsVal = f.fedfunds?.value ?? null;
+
                 // --- DXY (35%) ---
                 let dxyScore = 0;
                 let dxySignal = 'neutral';
                 let dxyVal = null;
                 let dxyChange = 0;
-                // prefer FRED DTWEXBGS, fallback Yahoo DX-Y.NYB
                 if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
                     dxyVal = f.dtwexbgs.value;
                     dxyChange = f.dtwexbgs.changePercent || 0;
@@ -1280,38 +1395,33 @@
                     dxyVal = y.dxy.price;
                     dxyChange = y.dxy.changePercent || 0;
                 }
+                state._dxyVal = dxyVal;
+                state._dxyChange = dxyChange;
+
                 if (dxyVal !== null && !isNaN(dxyVal)) {
-                    if (dxyChange < 0) {
-                        dxyScore = 35;
-                        dxySignal = 'bullish';
-                    } else if (dxyChange > 0) {
-                        dxyScore = -35;
-                        dxySignal = 'bearish';
-                    } else {
-                        dxyScore = 0;
-                        dxySignal = 'neutral';
-                    }
-                } else {
-                    dxyScore = 0;
-                    dxySignal = 'neutral';
-                }
+                    if (dxyChange < 0) { dxyScore = 35;
+                        dxySignal = 'bullish'; } else if (dxyChange > 0) { dxyScore = -35;
+                        dxySignal = 'bearish'; } else { dxyScore = 0;
+                        dxySignal = 'neutral'; }
+                } else { dxyScore = 0;
+                    dxySignal = 'neutral'; }
 
                 // --- Real Yield (30%) ---
                 let yieldScore = 0;
                 let yieldSignal = 'neutral';
                 let us10yChange = 0;
                 let dfii10Val = null;
-                // get US10Y change from Yahoo ^TNX or FRED DGS10
                 if (y.tnx && y.tnx.changePercent !== undefined && y.tnx.changePercent !== null) {
                     us10yChange = y.tnx.changePercent;
                 } else if (f.dgs10 && f.dgs10.changePercent !== undefined && f.dgs10.changePercent !== null) {
                     us10yChange = f.dgs10.changePercent;
                 }
-                // get DFII10 from FRED
                 if (f.dfii10 && f.dfii10.value !== undefined && f.dfii10.value !== null) {
                     dfii10Val = f.dfii10.value;
                 }
-                // Real Yield condition: US10Y change < 0 OR DFII10 < 1.8%
+                state._us10yChange = us10yChange;
+                state._dfii10Val = dfii10Val;
+
                 const us10yDown = us10yChange < 0;
                 const dfii10Low = dfii10Val !== null && !isNaN(dfii10Val) && dfii10Val < 1.8;
                 if (us10yDown || dfii10Low) {
@@ -1325,31 +1435,19 @@
                     yieldSignal = 'neutral';
                 }
 
-                // --- CPI (15%) - placeholder WAIT ---
+                // --- CPI (15%) — WAIT ---
                 let cpiScore = 0;
                 let cpiSignal = 'neutral';
-                // If we have CPI data from FRED, we could use it, but user says WAIT until live CPI
-                // So we keep it neutral
-                cpiScore = 0;
-                cpiSignal = 'neutral';
 
                 // --- Risk: AUD/USD + VIX (10%) ---
                 let riskScore = 0;
                 let riskSignal = 'neutral';
-                let audChange = 0;
-                let vixVal = null;
-                if (y.audusd && y.audusd.changePercent !== undefined && y.audusd.changePercent !== null) {
-                    audChange = y.audusd.changePercent;
-                }
-                if (y.vix && y.vix.price !== undefined && y.vix.price !== null) {
-                    vixVal = y.vix.price;
-                }
-                const audUp = audChange > 0;
-                const vixHigh = vixVal !== null && !isNaN(vixVal) && vixVal > 20;
+                const audUp = state._audChange > 0;
+                const vixHigh = state._vixVal !== null && !isNaN(state._vixVal) && state._vixVal > 20;
                 if (audUp || vixHigh) {
                     riskScore = 10;
                     riskSignal = 'bullish';
-                } else if (audChange < -0.5 && (vixVal === null || isNaN(vixVal) || vixVal <= 20)) {
+                } else if (state._audChange < -0.5 && (state._vixVal === null || isNaN(state._vixVal) || state._vixVal <= 20)) {
                     riskScore = -10;
                     riskSignal = 'bearish';
                 } else {
@@ -1360,261 +1458,150 @@
                 // --- News Fear: VIX > 18 (10%) ---
                 let fearScore = 0;
                 let fearSignal = 'neutral';
-                if (vixVal !== null && !isNaN(vixVal)) {
-                    if (vixVal > 18) {
-                        fearScore = 10;
-                        fearSignal = 'bullish';
-                    } else {
-                        fearScore = -5;
-                        fearSignal = 'bearish';
-                    }
-                } else {
-                    fearScore = 0;
-                    fearSignal = 'neutral';
-                }
+                if (state._vixVal !== null && !isNaN(state._vixVal)) {
+                    if (state._vixVal > 18) { fearScore = 10;
+                        fearSignal = 'bullish'; } else { fearScore = -5;
+                        fearSignal = 'bearish'; }
+                } else { fearScore = 0;
+                    fearSignal = 'neutral'; }
 
-                // --- TOTAL SCORE ---
+                // --- TOTAL ---
                 const totalScore = dxyScore + yieldScore + cpiScore + riskScore + fearScore;
                 state.score = clamp(totalScore, -100, 100);
 
-                // --- Verdict ---
                 let verdict = 'NEUTRAL';
                 let reasoning = '';
                 let confidence = 50 + Math.abs(state.score) / 2;
                 confidence = clamp(confidence, 0, 100);
 
+                // Build reasoning with references
+                const refs = [];
+                if (dxySignal === 'bullish') refs.push('DXY weak (Yahoo/FRED)');
+                else if (dxySignal === 'bearish') refs.push('DXY strong (Yahoo/FRED)');
+                if (yieldSignal === 'bullish') refs.push('Real Yield down (FRED DGS10−DFII10)');
+                else if (yieldSignal === 'bearish') refs.push('Real Yield up (FRED)');
+                if (fearSignal === 'bullish') refs.push('VIX > 18 (Yahoo)');
+                else if (fearSignal === 'bearish') refs.push('VIX calm (Yahoo)');
+
                 if (state.score >= 30) {
                     verdict = 'STRONG BUY';
-                    reasoning = 'DXY weak + Real Yield down + Fear up — bullish confluence';
+                    reasoning = 'DXY weak + Real Yield down + Fear up — bullish confluence. ' +
+                        (refs.length ? 'Signals: ' + refs.join('; ') : '') +
+                        ' | Source: Yahoo Finance, FRED St. Louis Fed.';
                 } else if (state.score <= -30) {
                     verdict = 'STRONG SELL';
-                    reasoning = 'DXY strong + Yield up — bearish pressure';
+                    reasoning = 'DXY strong + Yield up — bearish pressure. ' +
+                        (refs.length ? 'Signals: ' + refs.join('; ') : '') +
+                        ' | Source: Yahoo Finance, FRED St. Louis Fed.';
                 } else {
                     verdict = 'NEUTRAL WAIT';
-                    const reasons = [];
-                    if (dxySignal === 'neutral') reasons.push('DXY mixed');
-                    if (yieldSignal === 'neutral') reasons.push('Yield flat');
-                    if (cpiSignal === 'neutral') reasons.push('CPI pending');
-                    reasoning = reasons.length ? 'Mixed signals: ' + reasons.join(', ') + ' — wait for 15:30 or 21:00 SAST' :
-                        'Mixed signals — wait for 15:30 or 21:00 SAST';
+                    const mixed = [];
+                    if (dxySignal === 'neutral') mixed.push('DXY flat');
+                    if (yieldSignal === 'neutral') mixed.push('Yield flat');
+                    if (cpiSignal === 'neutral') mixed.push('CPI pending');
+                    reasoning = 'Mixed signals: ' + (mixed.length ? mixed.join(', ') : 'factors inconclusive') +
+                        ' — wait for 15:30 or 21:00 SAST. ' +
+                        ' | Sources: Yahoo, FRED, ForexFactory.';
                 }
 
                 state.verdict = verdict;
                 state.reasoning = reasoning;
                 state.confidence = confidence;
 
-                // Store factors for UI
                 state.factors.dxy = { impact: dxyScore, signal: dxySignal };
                 state.factors.realYield = { impact: yieldScore, signal: yieldSignal };
                 state.factors.cpi = { impact: cpiScore, signal: cpiSignal };
                 state.factors.risk = { impact: riskScore, signal: riskSignal };
                 state.factors.newsFear = { impact: fearScore, signal: fearSignal };
-
-                // store raw values for matrix
-                state._dxyVal = dxyVal;
-                state._dxyChange = dxyChange;
-                state._us10yChange = us10yChange;
-                state._dfii10Val = dfii10Val;
-                state._audChange = audChange;
-                state._vixVal = vixVal;
-                state._dgs10Val = f.dgs10?.value ?? null;
-                state._cpiaucslVal = f.cpiaucsl?.value ?? null;
-                state._fedfundsVal = f.fedfunds?.value ?? null;
-                state._tnxVal = y.tnx?.price ?? null;
-                state._goldVal = y.gold?.price ?? null;
-                state._goldChange = y.gold?.changePercent ?? 0;
             }
 
             // -------- RENDER --------
             function renderAll() {
-                renderCards();
+                renderStrengthBanner();
+                renderHero();
                 renderVerdict();
                 renderMatrix();
                 renderCalendar();
                 updateFactorStats();
             }
 
-            // --- CARDS ---
-            function renderCards() {
-                const y = state.yahoo;
-                const f = state.fred;
+            // --- STRENGTH BANNER ---
+            function renderStrengthBanner() {
+                // DOLLAR
+                const dxyVal = state._dxyVal;
+                const dxyChg = state._dxyChange;
+                let dollarStatus = 'neutral';
+                let dollarLabel = 'NEUTRAL';
+                let dollarSub = 'DXY flat';
+                if (dxyVal !== null && !isNaN(dxyVal)) {
+                    if (dxyChg < -0.1) { dollarStatus = 'bear';
+                        dollarLabel = 'WEAK';
+                        dollarSub = 'DXY ↓ ' + fmtPct(dxyChg); } else if (dxyChg > 0.1) { dollarStatus = 'bull';
+                        dollarLabel = 'STRONG';
+                        dollarSub = 'DXY ↑ ' + fmtPct(dxyChg); } else { dollarStatus = 'neutral';
+                        dollarLabel = 'NEUTRAL';
+                        dollarSub = 'DXY ' + fmt(dxyVal, 3); }
+                } else { dollarStatus = 'neutral';
+                    dollarLabel = '—';
+                    dollarSub = 'No data'; }
+                dollarStrength.className = 'strength-box ' + dollarStatus;
+                dollarStrengthVal.textContent = dollarLabel;
+                dollarStrengthVal.className = 'strength-value ' + dollarStatus;
+                dollarStrengthSub.textContent = dollarSub;
 
-                // Build card data
-                const cards = [];
+                // GOLD
+                const goldVal = state._goldVal;
+                const goldChg = state._goldChange;
+                let goldStatus = 'neutral';
+                let goldLabel = 'NEUTRAL';
+                let goldSub = 'XAU flat';
+                if (goldVal !== null && !isNaN(goldVal)) {
+                    if (goldChg > 0.2) { goldStatus = 'bull';
+                        goldLabel = 'STRONG';
+                        goldSub = 'XAU ↑ ' + fmtPct(goldChg); } else if (goldChg < -0.2) { goldStatus = 'bear';
+                        goldLabel = 'WEAK';
+                        goldSub = 'XAU ↓ ' + fmtPct(goldChg); } else { goldStatus = 'neutral';
+                        goldLabel = 'NEUTRAL';
+                        goldSub = 'XAU ' + fmt(goldVal, 2); }
+                } else { goldStatus = 'neutral';
+                    goldLabel = '—';
+                    goldSub = 'No data'; }
+                goldStrength.className = 'strength-box ' + goldStatus;
+                goldStrengthVal.textContent = goldLabel;
+                goldStrengthVal.className = 'strength-value ' + goldStatus;
+                goldStrengthSub.textContent = goldSub;
 
-                // 1. XAU/USD
-                const gold = y.gold || {};
-                cards.push({
-                    id: 'gold',
-                    label: 'XAU/USD',
-                    value: gold.price !== undefined && gold.price !== null ? gold.price : '—',
-                    change: gold.changePercent || 0,
-                    source: gold.source || 'Yahoo Finance API',
-                    fmt: 'USD',
-                    decimals: 2
-                });
+                // BIAS
+                const v = state.verdict;
+                let biasStatus = 'neutral';
+                let biasLabel = 'NEUTRAL';
+                let biasSub = 'Mixed signals';
+                if (v.includes('BUY')) { biasStatus = 'bull';
+                    biasLabel = 'BULLISH';
+                    biasSub = 'Gold favor ' + Math.round(state.score) + ' pts'; } else if (v.includes('SELL')) { biasStatus =
+                        'bear';
+                    biasLabel = 'BEARISH';
+                    biasSub = 'Dollar favor ' + Math.round(Math.abs(state.score)) + ' pts'; } else { biasStatus = 'neutral';
+                    biasLabel = 'NEUTRAL';
+                    biasSub = 'Score ' + Math.round(state.score); }
+                verdictStrength.className = 'strength-box ' + biasStatus;
+                verdictStrengthVal.textContent = biasLabel;
+                verdictStrengthVal.className = 'strength-value ' + biasStatus;
+                verdictStrengthSub.textContent = biasSub;
+            }
 
-                // 2. DXY
-                let dxyVal = null,
-                    dxyChange = 0,
-                    dxySource = '—';
-                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
-                    dxyVal = f.dtwexbgs.value;
-                    dxyChange = f.dtwexbgs.changePercent || 0;
-                    dxySource = f.dtwexbgs.source || 'FRED DTWEXBGS';
-                } else if (y.dxy && y.dxy.price !== undefined && y.dxy.price !== null) {
-                    dxyVal = y.dxy.price;
-                    dxyChange = y.dxy.changePercent || 0;
-                    dxySource = y.dxy.source || 'Yahoo Finance API';
-                }
-                cards.push({
-                    id: 'dxy',
-                    label: 'DXY Dollar Index',
-                    value: dxyVal !== null && !isNaN(dxyVal) ? dxyVal : '—',
-                    change: dxyChange,
-                    source: dxySource,
-                    fmt: 'index',
-                    decimals: 3
-                });
-
-                // 3. US10Y Yield
-                let us10yVal = null,
-                    us10yChange = 0,
-                    us10ySource = '—';
-                if (f.dgs10 && f.dgs10.value !== undefined && f.dgs10.value !== null) {
-                    us10yVal = f.dgs10.value;
-                    us10yChange = f.dgs10.changePercent || 0;
-                    us10ySource = f.dgs10.source || 'FRED DGS10';
-                } else if (y.tnx && y.tnx.price !== undefined && y.tnx.price !== null) {
-                    us10yVal = y.tnx.price;
-                    us10yChange = y.tnx.changePercent || 0;
-                    us10ySource = y.tnx.source || 'Yahoo Finance API';
-                }
-                cards.push({
-                    id: 'us10y',
-                    label: 'US10Y Yield DGS10',
-                    value: us10yVal !== null && !isNaN(us10yVal) ? us10yVal : '—',
-                    change: us10yChange,
-                    source: us10ySource,
-                    fmt: 'pct',
-                    decimals: 2
-                });
-
-                // 4. Real Yield (DGS10 - DFII10)
-                let realYieldVal = null,
-                    realYieldChange = 0,
-                    realYieldSource = '—';
-                const dgs10 = f.dgs10?.value;
-                const dfii10 = f.dfii10?.value;
-                if (dgs10 !== undefined && dgs10 !== null && !isNaN(dgs10) &&
-                    dfii10 !== undefined && dfii10 !== null && !isNaN(dfii10)) {
-                    realYieldVal = dgs10 - dfii10;
-                    realYieldSource = 'FRED DGS10-DFII10';
-                    // change is approx the change in spread
-                    const dgs10Prev = f.dgs10?.change || 0;
-                    const dfii10Prev = f.dfii10?.change || 0;
-                    realYieldChange = (dgs10Prev - dfii10Prev) || 0;
-                } else if (f.t10yie && f.t10yie.value !== undefined && f.t10yie.value !== null) {
-                    // fallback to T10YIE
-                    realYieldVal = f.t10yie.value;
-                    realYieldChange = f.t10yie.changePercent || 0;
-                    realYieldSource = f.t10yie.source || 'FRED T10YIE';
-                }
-                cards.push({
-                    id: 'realYield',
-                    label: 'Real Yield (DGS10−DFII10)',
-                    value: realYieldVal !== null && !isNaN(realYieldVal) ? realYieldVal : '—',
-                    change: realYieldChange,
-                    source: realYieldSource,
-                    fmt: 'pct',
-                    decimals: 2
-                });
-
-                // 5. AUD/USD
-                const aud = y.audusd || {};
-                cards.push({
-                    id: 'audusd',
-                    label: 'AUD/USD',
-                    value: aud.price !== undefined && aud.price !== null ? aud.price : '—',
-                    change: aud.changePercent || 0,
-                    source: aud.source || 'Yahoo Finance API',
-                    fmt: 'fx',
-                    decimals: 5
-                });
-
-                // 6. VIX
-                const vix = y.vix || {};
-                cards.push({
-                    id: 'vix',
-                    label: 'VIX Fear Index',
-                    value: vix.price !== undefined && vix.price !== null ? vix.price : '—',
-                    change: vix.changePercent || 0,
-                    source: vix.source || 'Yahoo Finance API',
-                    fmt: 'index',
-                    decimals: 2
-                });
-
-                // 7. CPI
-                let cpiVal = null,
-                    cpiChange = 0,
-                    cpiSource = '—';
-                if (f.cpiaucsl && f.cpiaucsl.value !== undefined && f.cpiaucsl.value !== null) {
-                    cpiVal = f.cpiaucsl.value;
-                    cpiChange = f.cpiaucsl.changePercent || 0;
-                    cpiSource = f.cpiaucsl.source || 'FRED CPIAUCSL';
-                }
-                cards.push({
-                    id: 'cpi',
-                    label: 'CPI (Consumer Price)',
-                    value: cpiVal !== null && !isNaN(cpiVal) ? cpiVal : '—',
-                    change: cpiChange,
-                    source: cpiSource || 'TradingEconomics (fallback)',
-                    fmt: 'index',
-                    decimals: 2
-                });
-
-                // 8. Fed Funds Rate
-                let fedVal = null,
-                    fedChange = 0,
-                    fedSource = '—';
-                if (f.fedfunds && f.fedfunds.value !== undefined && f.fedfunds.value !== null) {
-                    fedVal = f.fedfunds.value;
-                    fedChange = f.fedfunds.changePercent || 0;
-                    fedSource = f.fedfunds.source || 'FRED FEDFUNDS';
-                }
-                cards.push({
-                    id: 'fedfunds',
-                    label: 'Fed Funds Rate',
-                    value: fedVal !== null && !isNaN(fedVal) ? fedVal : '—',
-                    change: fedChange,
-                    source: fedSource || 'FRED (no key)',
-                    fmt: 'pct',
-                    decimals: 2
-                });
-
-                // Render cards
-                let html = '';
-                for (const card of cards) {
-                    const changeClass = getChangeClass(card.change);
-                    const arrow = getArrow(card.change);
-                    const changeStr = card.value !== '—' ? fmtPct(card.change) : '—';
-                    const displayVal = card.value !== '—' ? fmt(card.value, card.decimals) : '—';
-                    const barClass = changeClass === 'up' ? 'bull' : (changeClass === 'down' ? 'bear' : 'neutral');
-                    const barWidth = card.value !== '—' ? clamp(Math.abs(card.change) * 1.5 + 10, 5, 100) : 10;
-
-                    html += `
-                        <div class="card">
-                            <div class="card-label">
-                                <span>${card.label}</span>
-                                <span class="card-source">${card.source}</span>
-                            </div>
-                            <div class="card-value">${displayVal}</div>
-                            <div class="card-change ${changeClass}">${arrow} ${changeStr}</div>
-                            <div class="mini-chart"><div class="bar ${barClass}" style="width:${barWidth}%;"></div></div>
-                        </div>
-                    `;
-                }
-                cardGrid.innerHTML = html;
+            // --- HERO ---
+            function renderHero() {
+                const val = state._goldVal;
+                const chg = state._goldChange;
+                if (val !== null && !isNaN(val)) {
+                    goldHeroPrice.textContent = fmt(val, 2);
+                } else { goldHeroPrice.textContent = '—'; }
+                const cls = getChangeClass(chg);
+                goldHeroChange.textContent = (chg !== null && !isNaN(chg)) ? getArrow(chg) + ' ' + fmtPct(chg) : '—';
+                goldHeroChange.className = 'change ' + cls;
+                const src = state.yahoo.gold?.source || 'Yahoo Finance API';
+                goldHeroSource.textContent = 'Source: ' + src;
             }
 
             // --- VERDICT ---
@@ -1634,7 +1621,7 @@
                 else if (v.includes('SELL')) verdictTitle.classList.add('bear');
                 else verdictTitle.classList.add('neutral');
 
-                verdictScore.textContent = `Score: ${score >= 0 ? '+' : ''}${Math.round(score)}`;
+                verdictScore.textContent = 'Score: ' + (score >= 0 ? '+' : '') + Math.round(score);
                 verdictReason.textContent = state.reasoning || 'Analyzing…';
 
                 confidenceFill.style.width = conf + '%';
@@ -1643,21 +1630,13 @@
 
             // --- MATRIX ---
             function renderMatrix() {
-                const y = state.yahoo;
-                const f = state.fred;
-
-                // Gather data for each row
                 const rows = [];
 
                 // DXY
-                let dxyVal = state._dxyVal;
-                let dxyChange = state._dxyChange;
-                let dxySource = '—';
-                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
-                    dxySource = f.dtwexbgs.source || 'FRED DTWEXBGS';
-                } else if (y.dxy && y.dxy.price !== undefined && y.dxy.price !== null) {
-                    dxySource = y.dxy.source || 'Yahoo Finance API';
-                }
+                const dxyVal = state._dxyVal;
+                const dxyChg = state._dxyChange;
+                let dxySource = 'Yahoo DX-Y.NYB';
+                if (state.fred.dtwexbgs) dxySource = 'FRED DTWEXBGS';
                 const dxySig = state.factors.dxy.signal;
                 rows.push({
                     name: 'DXY Dollar Index',
@@ -1670,17 +1649,16 @@
 
                 // Real Yield
                 let ryVal = null;
-                const dgs10 = f.dgs10?.value;
-                const dfii10 = f.dfii10?.value;
-                if (dgs10 !== undefined && dgs10 !== null && !isNaN(dgs10) &&
-                    dfii10 !== undefined && dfii10 !== null && !isNaN(dfii10)) {
+                const dgs10 = state._dgs10Val;
+                const dfii10 = state._dfii10Val;
+                if (dgs10 !== null && !isNaN(dgs10) && dfii10 !== null && !isNaN(dfii10)) {
                     ryVal = dgs10 - dfii10;
-                } else if (f.t10yie && f.t10yie.value !== undefined && f.t10yie.value !== null) {
-                    ryVal = f.t10yie.value;
+                } else if (state.fred.t10yie && state.fred.t10yie.value !== null) {
+                    ryVal = state.fred.t10yie.value;
                 }
-                const rySource = f.dgs10?.source ? 'FRED DGS10-DFII10' : (f.t10yie?.source || 'FRED T10YIE');
+                const rySource = (dgs10 !== null && dfii10 !== null) ? 'FRED DGS10−DFII10' : 'FRED T10YIE';
                 rows.push({
-                    name: 'Real Yield (DGS10−DFII10)',
+                    name: 'Real Yield',
                     source: rySource,
                     value: ryVal !== null && !isNaN(ryVal) ? fmt(ryVal, 2) + '%' : '—',
                     impact: state.factors.realYield.impact,
@@ -1689,8 +1667,8 @@
                 });
 
                 // CPI
-                let cpiVal = state._cpiaucslVal;
-                let cpiSource = f.cpiaucsl?.source || 'TradingEconomics (fallback)';
+                const cpiVal = state._cpiaucslVal;
+                const cpiSource = state.fred.cpiaucsl ? 'FRED CPIAUCSL' : 'TradingEconomics (fallback)';
                 rows.push({
                     name: 'CPI (Inflation)',
                     source: cpiSource,
@@ -1700,11 +1678,9 @@
                     weight: '15%'
                 });
 
-                // Risk (AUD/USD + VIX)
-                let audVal = y.audusd?.price;
-                let audSource = y.audusd?.source || 'Yahoo Finance API';
-                let vixVal = state._vixVal;
-                let riskLabel = 'Risk (AUD/VIX)';
+                // Risk
+                const audVal = state.yahoo.audusd?.price;
+                const vixVal = state._vixVal;
                 let riskDisplay = '';
                 if (audVal !== undefined && audVal !== null && !isNaN(audVal)) {
                     riskDisplay = 'AUD ' + fmt(audVal, 5) + ' | VIX ' + (vixVal !== null && !isNaN(vixVal) ? fmt(vixVal, 2) :
@@ -1712,18 +1688,18 @@
                 } else {
                     riskDisplay = 'VIX ' + (vixVal !== null && !isNaN(vixVal) ? fmt(vixVal, 2) : '—');
                 }
+                const riskCombined = (state.factors.risk.signal === 'bullish' || state.factors.newsFear.signal === 'bullish') ?
+                    'bullish' : (state.factors.risk.signal === 'bearish' || state.factors.newsFear.signal === 'bearish') ?
+                    'bearish' : 'neutral';
                 rows.push({
-                    name: riskLabel,
-                    source: audSource + ' + Yahoo VIX',
+                    name: 'Risk (AUD/VIX)',
+                    source: 'Yahoo AUDUSD=X + ^VIX',
                     value: riskDisplay,
                     impact: state.factors.risk.impact + state.factors.newsFear.impact,
-                    signal: (state.factors.risk.signal === 'bullish' || state.factors.newsFear.signal === 'bullish') ?
-                        'bullish' : (state.factors.risk.signal === 'bearish' || state.factors.newsFear.signal ===
-                            'bearish') ? 'bearish' : 'neutral',
+                    signal: riskCombined,
                     weight: '10% + 10%'
                 });
 
-                // Build table
                 let html = '';
                 for (const row of rows) {
                     const sigClass = row.signal === 'bullish' ? 'signal-bull' : (row.signal === 'bearish' ? 'signal-bear' :
@@ -1734,7 +1710,10 @@
                     .impact) : '0');
                     html += `
                         <tr>
-                            <td><strong>${row.name}</strong></td>
+                            <td>
+                                <strong>${row.name}</strong>
+                                <span class="source-ref">${row.source}</span>
+                            </td>
                             <td>${row.value}</td>
                             <td class="${impactClass}">${impactLabel}</td>
                             <td class="${sigClass}">${sigLabel}</td>
@@ -1749,64 +1728,63 @@
             function renderCalendar() {
                 const events = state.calendar;
                 if (!events || events.length === 0) {
-                    calendarList.innerHTML = `<div class="calendar-empty">No upcoming USD High impact events found.</div>`;
+                    calendarList.innerHTML =
+                    `<div class="calendar-empty">No upcoming USD High impact events found.</div>`;
                     calTimestamp.textContent = '—';
                     return;
                 }
-
                 let html = '';
                 for (const ev of events) {
-                    const isFallback = ev.isFallback || false;
                     const timeDisplay = ev.timeSAST || formatTimeSAST(ev.date);
                     const dateDisplay = ev.dateSAST || formatDateSAST(ev.date);
                     const impactLabel = ev.impact || 'High';
                     const titleDisplay = ev.title || 'Event';
                     const forecastDisplay = ev.forecast || '—';
+                    const fallbackTag = ev.isFallback ? ' 📌 fallback' : '';
                     html += `
                         <div class="calendar-event">
                             <span class="ev-time">${timeDisplay}</span>
-                            <span class="ev-title">${titleDisplay} ${isFallback ? '📌' : ''}</span>
+                            <span class="ev-title">${titleDisplay}${fallbackTag}</span>
                             <span class="ev-impact high">${impactLabel}</span>
                             <span class="ev-forecast">Forecast: ${forecastDisplay}</span>
                             <span style="font-size:10px;color:var(--text-muted);">${dateDisplay}</span>
-                            ${isFallback ? '<span style="font-size:9px;color:var(--text-muted);background:var(--bg);padding:0 8px;border-radius:12px;">fallback</span>' : ''}
+                            ${ev.isFallback ? '<span style="font-size:9px;color:var(--text-muted);background:var(--bg);padding:0 8px;border-radius:12px;">TradingEconomics</span>' : '<span style="font-size:9px;color:var(--text-muted);background:var(--bg);padding:0 8px;border-radius:12px;">ForexFactory</span>'}
                         </div>
                     `;
                 }
                 calendarList.innerHTML = html;
-
                 const now = nowSAST();
                 calTimestamp.textContent = 'as of ' + now.toLocaleTimeString('en-ZA', { hour12: false }) + ' SAST';
             }
 
-            // --- FACTOR STATS (right panel) ---
+            // --- FACTOR STATS ---
             function updateFactorStats() {
                 const f = state.factors;
                 const dxyLabel = f.dxy.signal === 'bullish' ? '🟢 BULL' : (f.dxy.signal === 'bearish' ? '🔴 BEAR' : '⚪ NEUTRAL');
-                statDxy.textContent = dxyLabel;
+                statDxy.innerHTML = dxyLabel + ' <span class="ref-tag-sm">Yahoo/FRED</span>';
                 statDxy.className = 'stat-val ' + (f.dxy.signal === 'bullish' ? 'bull' : (f.dxy.signal === 'bearish' ? 'bear' :
                     ''));
 
                 const yieldLabel = f.realYield.signal === 'bullish' ? '🟢 BULL' : (f.realYield.signal === 'bearish' ? '🔴 BEAR' :
                     '⚪ NEUTRAL');
-                statYield.textContent = yieldLabel;
+                statYield.innerHTML = yieldLabel + ' <span class="ref-tag-sm">FRED DGS10−DFII10</span>';
                 statYield.className = 'stat-val ' + (f.realYield.signal === 'bullish' ? 'bull' : (f.realYield.signal ===
                     'bearish' ? 'bear' : ''));
 
                 const cpiLabel = f.cpi.signal === 'bullish' ? '🟢 BULL' : (f.cpi.signal === 'bearish' ? '🔴 BEAR' :
                     '⏳ WAIT');
-                statCpi.textContent = cpiLabel;
+                statCpi.innerHTML = cpiLabel + ' <span class="ref-tag-sm">FRED/fallback</span>';
                 statCpi.className = 'stat-val ' + (f.cpi.signal === 'bullish' ? 'bull' : (f.cpi.signal === 'bearish' ? 'bear' :
                     ''));
 
                 const riskCombined = (f.risk.signal === 'bullish' || f.newsFear.signal === 'bullish') ? '🟢 BULL' :
                     (f.risk.signal === 'bearish' || f.newsFear.signal === 'bearish') ? '🔴 BEAR' : '⚪ NEUTRAL';
-                statRisk.textContent = riskCombined;
+                statRisk.innerHTML = riskCombined + ' <span class="ref-tag-sm">Yahoo VIX</span>';
                 statRisk.className = 'stat-val ' + ((f.risk.signal === 'bullish' || f.newsFear.signal === 'bullish') ? 'bull' :
                     (f.risk.signal === 'bearish' || f.newsFear.signal === 'bearish') ? 'bear' : '');
             }
 
-            // -------- FRED KEY MANAGEMENT --------
+            // -------- FRED KEY --------
             function saveFredKey() {
                 const key = fredKeyInput.value.trim();
                 if (key) {
@@ -1814,7 +1792,6 @@
                     state.fredKey = key;
                     fredStatus.textContent = '✅ Key saved';
                     fredStatus.style.color = 'var(--green)';
-                    // Re-fetch with new key
                     fetchAll();
                 } else {
                     localStorage.removeItem('fred_key');
@@ -1828,37 +1805,26 @@
 
             // -------- INIT --------
             function init() {
-                // Load FRED key
                 if (state.fredKey) {
                     fredKeyInput.value = state.fredKey;
                     fredStatus.textContent = '✅ Key loaded';
                     fredStatus.style.color = 'var(--green)';
                 }
 
-                // Event listeners
                 refreshBtn.addEventListener('click', fetchAll);
                 saveFredKeyBtn.addEventListener('click', saveFredKey);
-                fredKeyInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') saveFredKey();
-                });
+                fredKeyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveFredKey(); });
 
-                // Initial fetch
                 fetchAll();
 
-                // Auto-refresh intervals
+                setInterval(fetchAll, CONFIG.refreshPricesMs);
                 setInterval(() => {
-                    fetchAll();
-                }, CONFIG.refreshPricesMs);
-
-                setInterval(() => {
-                    // refresh calendar only
                     fetchCalendar().then(events => {
                         state.calendar = events;
                         renderCalendar();
                     }).catch(e => console.warn('Calendar auto-refresh error:', e));
                 }, CONFIG.refreshCalendarMs);
 
-                // Update clock
                 setInterval(() => {
                     if (state.lastUpdate) {
                         lastUpdated.textContent = 'Last updated: ' + state.lastUpdate.toLocaleTimeString('en-ZA', {
@@ -1868,11 +1834,8 @@
                 }, 10000);
             }
 
-            // -------- BOOT --------
             document.addEventListener('DOMContentLoaded', init);
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                init();
-            }
+            if (document.readyState === 'complete' || document.readyState === 'interactive') { init(); }
 
         })();
     </script>
