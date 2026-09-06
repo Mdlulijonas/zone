@@ -190,7 +190,7 @@
             pointer-events: none;
         }
 
-        /* -------- TOP STRENGTH BANNER -------- */
+        /* -------- STRENGTH BANNER -------- */
         .strength-banner {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -258,7 +258,7 @@
             padding-top: 6px;
         }
 
-        /* -------- GOLD CARD (hero) -------- */
+        /* -------- HERO CARD -------- */
         .hero-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -560,6 +560,161 @@
             display: inline-block;
         }
 
+        /* -------- FUNDAMENTAL DRIVERS (NEW) -------- */
+        .drivers-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+
+        .drivers-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .drivers-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .drivers-header h3 small {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .drivers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .driver-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            transition: border-color 0.2s;
+        }
+
+        .driver-card:hover {
+            border-color: rgba(240, 199, 94, 0.2);
+        }
+
+        .driver-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .driver-title .badge-gold {
+            font-size: 10px;
+            background: var(--gold-dim);
+            color: var(--bg);
+            padding: 0 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+        .driver-title .badge-dollar {
+            font-size: 10px;
+            background: #3a7bd5;
+            color: #fff;
+            padding: 0 8px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .driver-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 4px 0 8px 0;
+            line-height: 1.4;
+        }
+
+        .driver-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+
+        .driver-meta .source {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .driver-meta .impact {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .driver-meta .impact .gold-impact {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .driver-meta .impact .gold-impact .arrow {
+            font-weight: 700;
+        }
+
+        .driver-meta .impact .gold-impact .arrow.bull {
+            color: var(--green);
+        }
+        .driver-meta .impact .gold-impact .arrow.bear {
+            color: var(--red);
+        }
+        .driver-meta .impact .gold-impact .arrow.neutral {
+            color: var(--grey);
+        }
+
+        .driver-meta .impact .dollar-impact {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .driver-meta .impact .dollar-impact .arrow {
+            font-weight: 700;
+        }
+
+        .driver-meta .impact .dollar-impact .arrow.bull {
+            color: var(--green);
+        }
+        .driver-meta .impact .dollar-impact .arrow.bear {
+            color: var(--red);
+        }
+        .driver-meta .impact .dollar-impact .arrow.neutral {
+            color: var(--grey);
+        }
+
+        .impact-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
         /* -------- CALENDAR -------- */
         .calendar-section {
             background: var(--bg-card);
@@ -752,6 +907,9 @@
             .hero-price .value {
                 font-size: 26px;
             }
+            .drivers-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 600px) {
@@ -804,6 +962,17 @@
             }
             .footer-attribution {
                 text-align: center;
+            }
+            .drivers-grid {
+                grid-template-columns: 1fr;
+            }
+            .driver-meta {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .driver-meta .impact {
+                justify-content: space-between;
             }
         }
 
@@ -891,7 +1060,7 @@
             </div>
         </header>
 
-        <!-- STRENGTH BANNER: DOLLAR | GOLD | VERDICT -->
+        <!-- STRENGTH BANNER -->
         <div class="strength-banner" id="strengthBanner">
             <div class="strength-box neutral" id="dollarStrength">
                 <div class="strength-label">💵 DOLLAR</div>
@@ -974,6 +1143,17 @@
             </table>
         </div>
 
+        <!-- NEW: KEY FUNDAMENTAL DRIVERS -->
+        <div class="drivers-section" id="driversSection">
+            <div class="drivers-header">
+                <h3>📰 Key Fundamental Drivers <small>— what's moving gold & the dollar right now</small></h3>
+                <span style="font-size:10px;color:var(--text-muted);">Sources: BBC, CNBC, Goldman Sachs, World Gold Council, Fed, etc.</span>
+            </div>
+            <div class="drivers-grid" id="driversGrid">
+                <!-- Static content injected by JS -->
+            </div>
+        </div>
+
         <!-- CALENDAR -->
         <div class="calendar-section" id="calendarSection">
             <div class="calendar-header">
@@ -1006,7 +1186,7 @@
     <script>
         // ============================================================
         //  XAU/USD v2 — Dollar vs Gold Commander
-        //  Single-file dashboard. No external libs.
+        //  Single-file dashboard.
         // ============================================================
 
         (function() {
@@ -1060,7 +1240,6 @@
                     risk: { impact: 0, signal: 'neutral' },
                     newsFear: { impact: 0, signal: 'neutral' }
                 },
-                // raw values for display
                 _dxyVal: null,
                 _dxyChange: 0,
                 _us10yChange: 0,
@@ -1077,7 +1256,6 @@
 
             // -------- DOM REFS --------
             const $ = id => document.getElementById(id);
-            const strengthBanner = $('strengthBanner');
             const dollarStrength = $('dollarStrength');
             const dollarStrengthVal = $('dollarStrengthVal');
             const dollarStrengthSub = $('dollarStrengthSub');
@@ -1108,6 +1286,7 @@
             const statYield = $('statYield');
             const statCpi = $('statCpi');
             const statRisk = $('statRisk');
+            const driversGrid = $('driversGrid');
 
             // -------- HELPERS --------
             function fmt(v, d = 2) {
@@ -1372,7 +1551,6 @@
                 const y = state.yahoo;
                 const f = state.fred;
 
-                // --- store raw values ---
                 state._goldVal = y.gold?.price ?? null;
                 state._goldChange = y.gold?.changePercent ?? 0;
                 state._vixVal = y.vix?.price ?? null;
@@ -1383,11 +1561,11 @@
                 state._cpiaucslVal = f.cpiaucsl?.value ?? null;
                 state._fedfundsVal = f.fedfunds?.value ?? null;
 
-                // --- DXY (35%) ---
-                let dxyScore = 0;
-                let dxySignal = 'neutral';
-                let dxyVal = null;
-                let dxyChange = 0;
+                // DXY
+                let dxyScore = 0,
+                    dxySignal = 'neutral',
+                    dxyVal = null,
+                    dxyChange = 0;
                 if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
                     dxyVal = f.dtwexbgs.value;
                     dxyChange = f.dtwexbgs.changePercent || 0;
@@ -1397,7 +1575,6 @@
                 }
                 state._dxyVal = dxyVal;
                 state._dxyChange = dxyChange;
-
                 if (dxyVal !== null && !isNaN(dxyVal)) {
                     if (dxyChange < 0) { dxyScore = 35;
                         dxySignal = 'bullish'; } else if (dxyChange > 0) { dxyScore = -35;
@@ -1406,11 +1583,11 @@
                 } else { dxyScore = 0;
                     dxySignal = 'neutral'; }
 
-                // --- Real Yield (30%) ---
-                let yieldScore = 0;
-                let yieldSignal = 'neutral';
-                let us10yChange = 0;
-                let dfii10Val = null;
+                // Real Yield
+                let yieldScore = 0,
+                    yieldSignal = 'neutral',
+                    us10yChange = 0,
+                    dfii10Val = null;
                 if (y.tnx && y.tnx.changePercent !== undefined && y.tnx.changePercent !== null) {
                     us10yChange = y.tnx.changePercent;
                 } else if (f.dgs10 && f.dgs10.changePercent !== undefined && f.dgs10.changePercent !== null) {
@@ -1421,7 +1598,6 @@
                 }
                 state._us10yChange = us10yChange;
                 state._dfii10Val = dfii10Val;
-
                 const us10yDown = us10yChange < 0;
                 const dfii10Low = dfii10Val !== null && !isNaN(dfii10Val) && dfii10Val < 1.8;
                 if (us10yDown || dfii10Low) {
@@ -1435,13 +1611,13 @@
                     yieldSignal = 'neutral';
                 }
 
-                // --- CPI (15%) — WAIT ---
-                let cpiScore = 0;
-                let cpiSignal = 'neutral';
+                // CPI — WAIT
+                let cpiScore = 0,
+                    cpiSignal = 'neutral';
 
-                // --- Risk: AUD/USD + VIX (10%) ---
-                let riskScore = 0;
-                let riskSignal = 'neutral';
+                // Risk
+                let riskScore = 0,
+                    riskSignal = 'neutral';
                 const audUp = state._audChange > 0;
                 const vixHigh = state._vixVal !== null && !isNaN(state._vixVal) && state._vixVal > 20;
                 if (audUp || vixHigh) {
@@ -1455,9 +1631,9 @@
                     riskSignal = 'neutral';
                 }
 
-                // --- News Fear: VIX > 18 (10%) ---
-                let fearScore = 0;
-                let fearSignal = 'neutral';
+                // News Fear
+                let fearScore = 0,
+                    fearSignal = 'neutral';
                 if (state._vixVal !== null && !isNaN(state._vixVal)) {
                     if (state._vixVal > 18) { fearScore = 10;
                         fearSignal = 'bullish'; } else { fearScore = -5;
@@ -1465,16 +1641,14 @@
                 } else { fearScore = 0;
                     fearSignal = 'neutral'; }
 
-                // --- TOTAL ---
                 const totalScore = dxyScore + yieldScore + cpiScore + riskScore + fearScore;
                 state.score = clamp(totalScore, -100, 100);
 
-                let verdict = 'NEUTRAL';
-                let reasoning = '';
+                let verdict = 'NEUTRAL',
+                    reasoning = '';
                 let confidence = 50 + Math.abs(state.score) / 2;
                 confidence = clamp(confidence, 0, 100);
 
-                // Build reasoning with references
                 const refs = [];
                 if (dxySignal === 'bullish') refs.push('DXY weak (Yahoo/FRED)');
                 else if (dxySignal === 'bearish') refs.push('DXY strong (Yahoo/FRED)');
@@ -1521,18 +1695,18 @@
                 renderHero();
                 renderVerdict();
                 renderMatrix();
+                renderDrivers(); // new
                 renderCalendar();
                 updateFactorStats();
             }
 
             // --- STRENGTH BANNER ---
             function renderStrengthBanner() {
-                // DOLLAR
                 const dxyVal = state._dxyVal;
                 const dxyChg = state._dxyChange;
-                let dollarStatus = 'neutral';
-                let dollarLabel = 'NEUTRAL';
-                let dollarSub = 'DXY flat';
+                let dollarStatus = 'neutral',
+                    dollarLabel = 'NEUTRAL',
+                    dollarSub = 'DXY flat';
                 if (dxyVal !== null && !isNaN(dxyVal)) {
                     if (dxyChg < -0.1) { dollarStatus = 'bear';
                         dollarLabel = 'WEAK';
@@ -1549,12 +1723,11 @@
                 dollarStrengthVal.className = 'strength-value ' + dollarStatus;
                 dollarStrengthSub.textContent = dollarSub;
 
-                // GOLD
                 const goldVal = state._goldVal;
                 const goldChg = state._goldChange;
-                let goldStatus = 'neutral';
-                let goldLabel = 'NEUTRAL';
-                let goldSub = 'XAU flat';
+                let goldStatus = 'neutral',
+                    goldLabel = 'NEUTRAL',
+                    goldSub = 'XAU flat';
                 if (goldVal !== null && !isNaN(goldVal)) {
                     if (goldChg > 0.2) { goldStatus = 'bull';
                         goldLabel = 'STRONG';
@@ -1571,11 +1744,10 @@
                 goldStrengthVal.className = 'strength-value ' + goldStatus;
                 goldStrengthSub.textContent = goldSub;
 
-                // BIAS
                 const v = state.verdict;
-                let biasStatus = 'neutral';
-                let biasLabel = 'NEUTRAL';
-                let biasSub = 'Mixed signals';
+                let biasStatus = 'neutral',
+                    biasLabel = 'NEUTRAL',
+                    biasSub = 'Mixed signals';
                 if (v.includes('BUY')) { biasStatus = 'bull';
                     biasLabel = 'BULLISH';
                     biasSub = 'Gold favor ' + Math.round(state.score) + ' pts'; } else if (v.includes('SELL')) { biasStatus =
@@ -1634,7 +1806,6 @@
 
                 // DXY
                 const dxyVal = state._dxyVal;
-                const dxyChg = state._dxyChange;
                 let dxySource = 'Yahoo DX-Y.NYB';
                 if (state.fred.dtwexbgs) dxySource = 'FRED DTWEXBGS';
                 const dxySig = state.factors.dxy.signal;
@@ -1722,6 +1893,63 @@
                     `;
                 }
                 matrixBody.innerHTML = html;
+            }
+
+            // --- NEW: RENDER DRIVERS ---
+            function renderDrivers() {
+                const drivers = [{
+                    title: 'Central Bank Buying',
+                    desc: 'Global central banks buying gold at record pace (1,000+ tonnes/year). Structural support – gold cannot be frozen.',
+                    source: 'Goldman Sachs, World Gold Council',
+                    goldImpact: 'bullish',
+                    dollarImpact: 'bearish'
+                }, {
+                    title: 'US Debt & Dollar Fears',
+                    desc: 'US national debt ~$37T and growing. Investors hedge against fiscal instability and dollar debasement.',
+                    source: 'CNBC, State Street',
+                    goldImpact: 'bullish',
+                    dollarImpact: 'bearish'
+                }, {
+                    title: 'Geopolitical Uncertainty',
+                    desc: 'Iran conflict, tariff threats, and political instability drive safe‑haven demand into gold.',
+                    source: 'BBC, Reuters',
+                    goldImpact: 'bullish',
+                    dollarImpact: 'neutral'
+                }, {
+                    title: 'Fed Hawkish Shift',
+                    desc: 'Fed signalled possible rate hike by late 2026. Higher rates boost dollar, weigh on gold.',
+                    source: 'Fed, Morningstar',
+                    goldImpact: 'bearish',
+                    dollarImpact: 'bullish'
+                }, {
+                    title: 'US Economic Outperformance',
+                    desc: 'US GDP growth 3.0% Q2, jobs beat (172k). Widening yield spreads support the dollar.',
+                    source: 'Atlanta Fed, BBH',
+                    goldImpact: 'neutral',
+                    dollarImpact: 'bullish'
+                }];
+
+                let html = '';
+                for (const d of drivers) {
+                    const goldArrow = d.goldImpact === 'bullish' ? '🟢 ↑' : (d.goldImpact === 'bearish' ? '🔴 ↓' : '⚪ →');
+                    const dollarArrow = d.dollarImpact === 'bullish' ? '🟢 ↑' : (d.dollarImpact === 'bearish' ? '🔴 ↓' : '⚪ →');
+                    html += `
+                        <div class="driver-card">
+                            <div class="driver-title">
+                                ${d.title}
+                            </div>
+                            <div class="driver-desc">${d.desc}</div>
+                            <div class="driver-meta">
+                                <span class="source">📌 ${d.source}</span>
+                                <div class="impact">
+                                    <span class="gold-impact"><span class="impact-label">Gold</span> <span class="arrow ${d.goldImpact}">${goldArrow}</span></span>
+                                    <span class="dollar-impact"><span class="impact-label">Dollar</span> <span class="arrow ${d.dollarImpact}">${dollarArrow}</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                driversGrid.innerHTML = html;
             }
 
             // --- CALENDAR ---
