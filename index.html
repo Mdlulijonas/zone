@@ -198,7 +198,6 @@
             pointer-events: none;
         }
 
-        /* AUTO-REFRESH TIMER */
         .timer-badge {
             font-size: 10px;
             color: var(--text-muted);
@@ -587,6 +586,20 @@
             color: var(--text-secondary);
             border: 1px solid var(--border);
             display: inline-block;
+        }
+
+        .matrix-table .trend-arrow {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .matrix-table .trend-arrow.bull {
+            color: var(--green);
+        }
+        .matrix-table .trend-arrow.bear {
+            color: var(--red);
+        }
+        .matrix-table .trend-arrow.neutral {
+            color: var(--grey);
         }
 
         .matrix-table .status-ok {
@@ -1088,13 +1101,14 @@
                     <tr>
                         <th>Fundamental (Source)</th>
                         <th>Live Value</th>
+                        <th>Trend</th>
                         <th>Impact</th>
                         <th>Signal for Gold</th>
                         <th>Weight</th>
                     </tr>
                 </thead>
                 <tbody id="matrixBody">
-                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Loading data…</td></tr>
+                    <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading data…</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1139,8 +1153,8 @@
 
     <script>
         // ============================================================
-        //  XAU/USD v2 — Dollar vs Gold Commander
-        //  Single-file dashboard with real data + auto-refresh
+        //  XAU/USD v2 — Stable Trend‑Based Dashboard
+        //  Uses slope over last 5 data points + hysteresis for verdict
         // ============================================================
 
         (function() {
@@ -1162,7 +1176,6 @@
                     cpiaucsl: 'CPIAUCSL',
                     fedfunds: 'FEDFUNDS'
                 },
-                // Primary proxy + fallback
                 proxies: [
                     'https://api.allorigins.win/raw?url=',
                     'https://corsproxy.io/?',
@@ -1176,7 +1189,11 @@
                     { time: '15:30', title: 'US CPI / NFP / PPI', impact: 'High' },
                     { time: '21:00', title: 'FOMC / Powell Speech', impact: 'High' },
                     { time: '09:00', title: 'China Open (Gold impact)', impact: 'High' }
-                ]
+                ],
+                // Hysteresis band: score must move beyond these thresholds to change direction
+                HYSTERESIS_THRESHOLD: 20,
+                // Minimum slope (per minute) to consider a trend
+                SLOPE_THRESHOLD: 0.001
             };
 
             // -------- STATE --------
@@ -1186,6 +1203,7 @@
                 calendar: [],
                 score: 0,
                 verdict: 'NEUTRAL',
+                prevVerdict: 'NEUTRAL',
                 confidence: 50,
                 reasoning: '',
                 lastUpdate: null,
@@ -1199,6 +1217,15 @@
                     risk: { impact: 0, signal: 'neutral' },
                     newsFear: { impact: 0, signal: 'neutral' }
                 },
+                // History for trend detection (last 6 values)
+                history: {
+                    gold: [],
+                    dxy: [],
+                    tnx: [],
+                    vix: [],
+                    audusd: []
+                },
+                // Last known values for display
                 _dxyVal: null,
                 _dxyChange: 0,
                 _us10yChange: 0,
@@ -1216,7 +1243,15 @@
                 _vixSource: '—',
                 _audSource: '—',
                 _tnxSource: '—',
-                _lastFetchOk: false
+                _lastFetchOk: false,
+                // Trend states
+                _trend: {
+                    gold: 'neutral',
+                    dxy: 'neutral',
+                    tnx: 'neutral',
+                    vix: 'neutral',
+                    audusd: 'neutral'
+                }
             };
 
             // -------- DOM REFS --------
@@ -1284,6 +1319,27 @@
                 return '→';
             }
 
+            // Compute slope of last n values (simple linear regression)
+            function computeSlope(values) {
+                if (!values || values.length < 2) return 0;
+                const n = values.length;
+                const x = Array.from({ length: n }, (_, i) => i);
+                const y = values.slice(-n);
+                const sumX = x.reduce((a, b) => a + b, 0);
+                const sumY = y.reduce((a, b) => a + b, 0);
+                const sumXY = x.reduce((a, b, i) => a + b * y[i], 0);
+                const sumX2 = x.reduce((a, b) => a + b * b, 0);
+                const denom = n * sumX2 - sumX * sumX;
+                if (denom === 0) return 0;
+                return (n * sumXY - sumX * sumY) / denom;
+            }
+
+            function slopeToTrend(slope, threshold = 0.001) {
+                if (slope > threshold) return 'bullish';
+                if (slope < -threshold) return 'bearish';
+                return 'neutral';
+            }
+
             function toSAST(date) {
                 const d = new Date(date);
                 d.setHours(d.getHours() + 2);
@@ -1317,7 +1373,6 @@
                         });
                         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                         const text = await resp.text();
-                        // try to parse JSON if possible
                         try { return JSON.parse(text); } catch (_) { return text; }
                     } catch (e) {
                         errors.push(`${proxy}: ${e.message}`);
@@ -1491,7 +1546,7 @@
                 const errors = [];
 
                 try {
-                    // Yahoo in parallel
+                    // Yahoo
                     const yahooKeys = Object.keys(CONFIG.yahooSymbols);
                     const yahooPromises = yahooKeys.map(async (key) => {
                         const result = await fetchYahoo(CONFIG.yahooSymbols[key]);
@@ -1518,13 +1573,14 @@
                             if (val) fredData[key] = val;
                             else errors.push(`FRED ${key} failed`);
                         }
-                    } else {
-                        // no key, skip FRED but don't error
                     }
                     state.fred = fredData;
 
                     // Calendar
                     state.calendar = await fetchCalendar();
+
+                    // Update history
+                    updateHistory();
 
                     // Compute & render
                     computeAnalysis();
@@ -1548,7 +1604,6 @@
                     statusText.textContent = 'Error';
                     fetchStatus.textContent = '⚠️ ' + e.message.slice(0, 60);
                     fetchStatus.className = 'hero-status err';
-                    // render whatever we have
                     renderAll();
                 } finally {
                     state.loading = false;
@@ -1558,12 +1613,55 @@
                 }
             }
 
-            // -------- ANALYSIS ENGINE --------
+            // -------- UPDATE HISTORY --------
+            function updateHistory() {
+                const y = state.yahoo;
+                const f = state.fred;
+                // Gold
+                if (y.gold && y.gold.price !== undefined && !isNaN(y.gold.price)) {
+                    state.history.gold.push(y.gold.price);
+                    if (state.history.gold.length > 10) state.history.gold.shift();
+                }
+                // DXY
+                let dxyVal = null;
+                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && !isNaN(f.dtwexbgs.value)) {
+                    dxyVal = f.dtwexbgs.value;
+                } else if (y.dxy && y.dxy.price !== undefined && !isNaN(y.dxy.price)) {
+                    dxyVal = y.dxy.price;
+                }
+                if (dxyVal !== null) {
+                    state.history.dxy.push(dxyVal);
+                    if (state.history.dxy.length > 10) state.history.dxy.shift();
+                }
+                // TNX (10y yield)
+                let tnxVal = null;
+                if (f.dgs10 && f.dgs10.value !== undefined && !isNaN(f.dgs10.value)) {
+                    tnxVal = f.dgs10.value;
+                } else if (y.tnx && y.tnx.price !== undefined && !isNaN(y.tnx.price)) {
+                    tnxVal = y.tnx.price;
+                }
+                if (tnxVal !== null) {
+                    state.history.tnx.push(tnxVal);
+                    if (state.history.tnx.length > 10) state.history.tnx.shift();
+                }
+                // VIX
+                if (y.vix && y.vix.price !== undefined && !isNaN(y.vix.price)) {
+                    state.history.vix.push(y.vix.price);
+                    if (state.history.vix.length > 10) state.history.vix.shift();
+                }
+                // AUDUSD
+                if (y.audusd && y.audusd.price !== undefined && !isNaN(y.audusd.price)) {
+                    state.history.audusd.push(y.audusd.price);
+                    if (state.history.audusd.length > 10) state.history.audusd.shift();
+                }
+            }
+
+            // -------- ANALYSIS ENGINE (with trend + hysteresis) --------
             function computeAnalysis() {
                 const y = state.yahoo;
                 const f = state.fred;
 
-                // raw values
+                // ---- raw values ----
                 state._goldVal = y.gold?.price ?? null;
                 state._goldChange = y.gold?.changePercent ?? 0;
                 state._goldSource = y.gold?.source || 'Yahoo Finance';
@@ -1578,54 +1676,44 @@
                 state._cpiaucslVal = f.cpiaucsl?.value ?? null;
                 state._fedfundsVal = f.fedfunds?.value ?? null;
 
-                // DXY
-                let dxyVal = null,
-                    dxyChange = 0,
-                    dxySource = '—';
-                if (f.dtwexbgs && f.dtwexbgs.value !== undefined && f.dtwexbgs.value !== null) {
-                    dxyVal = f.dtwexbgs.value;
-                    dxyChange = f.dtwexbgs.changePercent || 0;
-                    dxySource = f.dtwexbgs.source || 'FRED DTWEXBGS';
-                } else if (y.dxy && y.dxy.price !== undefined && y.dxy.price !== null) {
-                    dxyVal = y.dxy.price;
-                    dxyChange = y.dxy.changePercent || 0;
-                    dxySource = y.dxy.source || 'Yahoo Finance';
-                }
-                state._dxyVal = dxyVal;
-                state._dxyChange = dxyChange;
-                state._dxySource = dxySource;
+                // ---- compute trends from history ----
+                const goldSlope = computeSlope(state.history.gold);
+                const dxySlope = computeSlope(state.history.dxy);
+                const tnxSlope = computeSlope(state.history.tnx);
+                const vixSlope = computeSlope(state.history.vix);
+                const audSlope = computeSlope(state.history.audusd);
 
+                const goldTrend = slopeToTrend(goldSlope, CONFIG.SLOPE_THRESHOLD);
+                const dxyTrend = slopeToTrend(dxySlope, CONFIG.SLOPE_THRESHOLD);
+                const tnxTrend = slopeToTrend(tnxSlope, CONFIG.SLOPE_THRESHOLD);
+                const vixTrend = slopeToTrend(vixSlope, CONFIG.SLOPE_THRESHOLD);
+                const audTrend = slopeToTrend(audSlope, CONFIG.SLOPE_THRESHOLD);
+
+                state._trend.gold = goldTrend;
+                state._trend.dxy = dxyTrend;
+                state._trend.tnx = tnxTrend;
+                state._trend.vix = vixTrend;
+                state._trend.audusd = audTrend;
+
+                // ---- score based on trends ----
+                // DXY (35%): if DXY trending down -> bullish for gold
                 let dxyScore = 0,
                     dxySignal = 'neutral';
-                if (dxyVal !== null && !isNaN(dxyVal)) {
-                    if (dxyChange < 0) { dxyScore = 35;
-                        dxySignal = 'bullish'; } else if (dxyChange > 0) { dxyScore = -35;
-                        dxySignal = 'bearish'; } else { dxyScore = 0;
-                        dxySignal = 'neutral'; }
-                }
+                if (dxyTrend === 'bearish') { dxyScore = 35;
+                    dxySignal = 'bullish'; } else if (dxyTrend === 'bullish') { dxyScore = -35;
+                    dxySignal = 'bearish'; } else { dxyScore = 0;
+                    dxySignal = 'neutral'; }
 
-                // Real Yield
-                let us10yChange = 0,
-                    dfii10Val = null;
-                if (y.tnx && y.tnx.changePercent !== undefined && y.tnx.changePercent !== null) {
-                    us10yChange = y.tnx.changePercent;
-                } else if (f.dgs10 && f.dgs10.changePercent !== undefined && f.dgs10.changePercent !== null) {
-                    us10yChange = f.dgs10.changePercent;
-                }
-                if (f.dfii10 && f.dfii10.value !== undefined && f.dfii10.value !== null) {
-                    dfii10Val = f.dfii10.value;
-                }
-                state._us10yChange = us10yChange;
-                state._dfii10Val = dfii10Val;
-
+                // Real Yield (30%): if TNX trending down OR DFII10 < 1.8%
                 let yieldScore = 0,
                     yieldSignal = 'neutral';
-                const us10yDown = us10yChange < 0;
-                const dfii10Low = dfii10Val !== null && !isNaN(dfii10Val) && dfii10Val < 1.8;
-                if (us10yDown || dfii10Low) {
+                const tnxDown = tnxTrend === 'bearish';
+                const dfii10Low = state._dfii10Val !== null && !isNaN(state._dfii10Val) && state._dfii10Val < 1.8;
+                if (tnxDown || dfii10Low) {
                     yieldScore = 30;
                     yieldSignal = 'bullish';
-                } else if (us10yChange > 0 && (dfii10Val === null || isNaN(dfii10Val) || dfii10Val >= 1.8)) {
+                } else if (tnxTrend === 'bullish' && (state._dfii10Val === null || isNaN(state._dfii10Val) || state
+                        ._dfii10Val >= 1.8)) {
                     yieldScore = -30;
                     yieldSignal = 'bearish';
                 } else {
@@ -1633,19 +1721,19 @@
                     yieldSignal = 'neutral';
                 }
 
-                // CPI — WAIT
+                // CPI: wait
                 let cpiScore = 0,
                     cpiSignal = 'neutral';
 
-                // Risk
+                // Risk (10%): AUD trending up OR VIX > 20
                 let riskScore = 0,
                     riskSignal = 'neutral';
-                const audUp = state._audChange > 0;
+                const audUp = audTrend === 'bullish';
                 const vixHigh = state._vixVal !== null && !isNaN(state._vixVal) && state._vixVal > 20;
                 if (audUp || vixHigh) {
                     riskScore = 10;
                     riskSignal = 'bullish';
-                } else if (state._audChange < -0.5 && (state._vixVal === null || isNaN(state._vixVal) || state._vixVal <= 20)) {
+                } else if (audTrend === 'bearish' && (state._vixVal === null || isNaN(state._vixVal) || state._vixVal <= 20)) {
                     riskScore = -10;
                     riskSignal = 'bearish';
                 } else {
@@ -1653,7 +1741,7 @@
                     riskSignal = 'neutral';
                 }
 
-                // News Fear
+                // News Fear (10%): VIX > 18
                 let fearScore = 0,
                     fearSignal = 'neutral';
                 if (state._vixVal !== null && !isNaN(state._vixVal)) {
@@ -1662,52 +1750,79 @@
                         fearSignal = 'bearish'; }
                 }
 
-                const totalScore = dxyScore + yieldScore + cpiScore + riskScore + fearScore;
-                state.score = clamp(totalScore, -100, 100);
+                const rawScore = dxyScore + yieldScore + cpiScore + riskScore + fearScore;
 
-                let verdict = 'NEUTRAL',
-                    reasoning = '';
+                // ---- hysteresis ----
+                const prevVerdict = state.prevVerdict;
+                let newVerdict = prevVerdict;
+                let score = rawScore;
+
+                // If currently neutral, require |score| > THRESHOLD to flip
+                if (prevVerdict === 'NEUTRAL') {
+                    if (score >= CONFIG.HYSTERESIS_THRESHOLD) newVerdict = 'BUY';
+                    else if (score <= -CONFIG.HYSTERESIS_THRESHOLD) newVerdict = 'SELL';
+                    else newVerdict = 'NEUTRAL';
+                } else if (prevVerdict === 'BUY') {
+                    // remain BUY unless score drops below -THRESHOLD/2 (weaker condition to stay)
+                    if (score <= -CONFIG.HYSTERESIS_THRESHOLD / 2) newVerdict = 'SELL';
+                    else if (score < CONFIG.HYSTERESIS_THRESHOLD / 2) newVerdict = 'NEUTRAL'; // weak buy -> neutral
+                    else newVerdict = 'BUY';
+                } else if (prevVerdict === 'SELL') {
+                    if (score >= CONFIG.HYSTERESIS_THRESHOLD / 2) newVerdict = 'BUY';
+                    else if (score > -CONFIG.HYSTERESIS_THRESHOLD / 2) newVerdict = 'NEUTRAL';
+                    else newVerdict = 'SELL';
+                }
+
+                // Clamp score for display
+                state.score = clamp(score, -100, 100);
+                state.prevVerdict = newVerdict;
+                state.verdict = newVerdict;
+
+                // Confidence
                 let confidence = 50 + Math.abs(state.score) / 2;
                 confidence = clamp(confidence, 0, 100);
+                state.confidence = confidence;
 
-                const refs = [];
-                if (dxySignal === 'bullish') refs.push('DXY weak');
-                else if (dxySignal === 'bearish') refs.push('DXY strong');
-                if (yieldSignal === 'bullish') refs.push('Real Yield down');
-                else if (yieldSignal === 'bearish') refs.push('Real Yield up');
-                if (fearSignal === 'bullish') refs.push('VIX > 18 (fear)');
-                else if (fearSignal === 'bearish') refs.push('VIX calm');
+                // Build reasoning with specific factors
+                const reasons = [];
+                if (dxySignal === 'bullish') reasons.push('DXY weakening');
+                else if (dxySignal === 'bearish') reasons.push('DXY strengthening');
+                if (yieldSignal === 'bullish') reasons.push('Real Yield falling');
+                else if (yieldSignal === 'bearish') reasons.push('Real Yield rising');
+                if (fearSignal === 'bullish') reasons.push('VIX elevated (fear)');
+                else if (fearSignal === 'bearish') reasons.push('VIX subdued');
 
-                if (state.score >= 30) {
-                    verdict = 'STRONG BUY';
-                    reasoning = 'DXY weak + Real Yield down + Fear up — bullish confluence. ' +
-                        (refs.length ? 'Signals: ' + refs.join('; ') : '') +
-                        ' | Sources: Yahoo Finance, FRED St. Louis Fed.';
-                } else if (state.score <= -30) {
-                    verdict = 'STRONG SELL';
-                    reasoning = 'DXY strong + Yield up — bearish pressure. ' +
-                        (refs.length ? 'Signals: ' + refs.join('; ') : '') +
-                        ' | Sources: Yahoo Finance, FRED St. Louis Fed.';
+                let reasoning = '';
+                if (newVerdict === 'BUY') {
+                    reasoning = 'Bullish confluence: ' + (reasons.length ? reasons.join('; ') : 'multiple factors positive') +
+                        ' — Sources: Yahoo, FRED.';
+                } else if (newVerdict === 'SELL') {
+                    reasoning = 'Bearish pressure: ' + (reasons.length ? reasons.join('; ') : 'multiple factors negative') +
+                        ' — Sources: Yahoo, FRED.';
                 } else {
-                    verdict = 'NEUTRAL WAIT';
                     const mixed = [];
                     if (dxySignal === 'neutral') mixed.push('DXY flat');
                     if (yieldSignal === 'neutral') mixed.push('Yield flat');
                     if (cpiSignal === 'neutral') mixed.push('CPI pending');
                     reasoning = 'Mixed signals: ' + (mixed.length ? mixed.join(', ') : 'factors inconclusive') +
-                        ' — wait for 15:30 or 21:00 SAST. ' +
-                        ' | Sources: Yahoo, FRED, ForexFactory.';
+                        ' — wait for 15:30 or 21:00 SAST. Sources: Yahoo, FRED, ForexFactory.';
                 }
-
-                state.verdict = verdict;
                 state.reasoning = reasoning;
-                state.confidence = confidence;
 
+                // Store factors for display
                 state.factors.dxy = { impact: dxyScore, signal: dxySignal };
                 state.factors.realYield = { impact: yieldScore, signal: yieldSignal };
                 state.factors.cpi = { impact: cpiScore, signal: cpiSignal };
                 state.factors.risk = { impact: riskScore, signal: riskSignal };
                 state.factors.newsFear = { impact: fearScore, signal: fearSignal };
+
+                // also store raw values for matrix
+                state._dxyVal = (f.dtwexbgs?.value) ?? (y.dxy?.price) ?? null;
+                state._dxyChange = (f.dtwexbgs?.changePercent) ?? (y.dxy?.changePercent) ?? 0;
+                state._dxySource = (f.dtwexbgs?.source) || (y.dxy?.source) || '—';
+                state._us10yChange = (f.dgs10?.changePercent) ?? (y.tnx?.changePercent) ?? 0;
+                state._vixVal = y.vix?.price ?? null;
+                state._audChange = y.audusd?.changePercent ?? 0;
             }
 
             // -------- RENDER --------
@@ -1723,17 +1838,16 @@
 
             function renderStrengthBanner() {
                 const dxyVal = state._dxyVal;
-                const dxyChg = state._dxyChange;
+                const dxyTrend = state._trend.dxy;
                 let dollarStatus = 'neutral',
                     dollarLabel = 'NEUTRAL',
                     dollarSub = 'DXY flat';
                 if (dxyVal !== null && !isNaN(dxyVal)) {
-                    if (dxyChg < -0.1) { dollarStatus = 'bear';
+                    if (dxyTrend === 'bearish') { dollarStatus = 'bear';
                         dollarLabel = 'WEAK';
-                        dollarSub = 'DXY ↓ ' + fmtPct(dxyChg) + ' (' + fmt(dxyVal, 3) + ')'; } else if (dxyChg > 0.1) {
-                        dollarStatus = 'bull';
+                        dollarSub = 'DXY ↓ ' + fmt(dxyVal, 3); } else if (dxyTrend === 'bullish') { dollarStatus = 'bull';
                         dollarLabel = 'STRONG';
-                        dollarSub = 'DXY ↑ ' + fmtPct(dxyChg) + ' (' + fmt(dxyVal, 3) + ')'; } else { dollarStatus = 'neutral';
+                        dollarSub = 'DXY ↑ ' + fmt(dxyVal, 3); } else { dollarStatus = 'neutral';
                         dollarLabel = 'NEUTRAL';
                         dollarSub = 'DXY ' + fmt(dxyVal, 3); }
                 } else { dollarStatus = 'neutral';
@@ -1745,17 +1859,16 @@
                 dollarStrengthSub.textContent = dollarSub;
 
                 const goldVal = state._goldVal;
-                const goldChg = state._goldChange;
+                const goldTrend = state._trend.gold;
                 let goldStatus = 'neutral',
                     goldLabel = 'NEUTRAL',
                     goldSub = 'XAU flat';
                 if (goldVal !== null && !isNaN(goldVal)) {
-                    if (goldChg > 0.2) { goldStatus = 'bull';
+                    if (goldTrend === 'bullish') { goldStatus = 'bull';
                         goldLabel = 'STRONG';
-                        goldSub = 'XAU ↑ ' + fmtPct(goldChg) + ' (' + fmt(goldVal, 2) + ')'; } else if (goldChg < -0.2) {
-                        goldStatus = 'bear';
+                        goldSub = 'XAU ↑ ' + fmt(goldVal, 2); } else if (goldTrend === 'bearish') { goldStatus = 'bear';
                         goldLabel = 'WEAK';
-                        goldSub = 'XAU ↓ ' + fmtPct(goldChg) + ' (' + fmt(goldVal, 2) + ')'; } else { goldStatus = 'neutral';
+                        goldSub = 'XAU ↓ ' + fmt(goldVal, 2); } else { goldStatus = 'neutral';
                         goldLabel = 'NEUTRAL';
                         goldSub = 'XAU ' + fmt(goldVal, 2); }
                 } else { goldStatus = 'neutral';
@@ -1770,10 +1883,9 @@
                 let biasStatus = 'neutral',
                     biasLabel = 'NEUTRAL',
                     biasSub = 'Mixed signals';
-                if (v.includes('BUY')) { biasStatus = 'bull';
+                if (v === 'BUY') { biasStatus = 'bull';
                     biasLabel = 'BULLISH';
-                    biasSub = 'Gold favor ' + Math.round(state.score) + ' pts'; } else if (v.includes('SELL')) { biasStatus =
-                        'bear';
+                    biasSub = 'Gold favor ' + Math.round(state.score) + ' pts'; } else if (v === 'SELL') { biasStatus = 'bear';
                     biasLabel = 'BEARISH';
                     biasSub = 'Dollar favor ' + Math.round(Math.abs(state.score)) + ' pts'; } else { biasStatus = 'neutral';
                     biasLabel = 'NEUTRAL';
@@ -1802,14 +1914,15 @@
                 const conf = state.confidence;
 
                 verdictBox.className = 'verdict-box';
-                if (v.includes('BUY')) verdictBox.classList.add('bull');
-                else if (v.includes('SELL')) verdictBox.classList.add('bear');
+                if (v === 'BUY') verdictBox.classList.add('bull');
+                else if (v === 'SELL') verdictBox.classList.add('bear');
                 else verdictBox.classList.add('neutral');
 
-                verdictTitle.textContent = v;
+                let displayVerdict = v === 'BUY' ? 'STRONG BUY' : (v === 'SELL' ? 'STRONG SELL' : 'NEUTRAL WAIT');
+                verdictTitle.textContent = displayVerdict;
                 verdictTitle.className = 'verdict-title';
-                if (v.includes('BUY')) verdictTitle.classList.add('bull');
-                else if (v.includes('SELL')) verdictTitle.classList.add('bear');
+                if (v === 'BUY') verdictTitle.classList.add('bull');
+                else if (v === 'SELL') verdictTitle.classList.add('bear');
                 else verdictTitle.classList.add('neutral');
 
                 verdictScore.textContent = 'Score: ' + (score >= 0 ? '+' : '') + Math.round(score);
@@ -1822,19 +1935,25 @@
             function renderMatrix() {
                 const rows = [];
 
+                // DXY
                 const dxyVal = state._dxyVal;
+                const dxyTrend = state._trend.dxy;
                 const dxySource = state._dxySource || 'Yahoo/FRED';
                 const dxySig = state.factors.dxy.signal;
+                const dxyArrow = dxyTrend === 'bullish' ? '↑' : (dxyTrend === 'bearish' ? '↓' : '→');
                 rows.push({
                     name: 'DXY Dollar Index',
                     source: dxySource,
                     value: dxyVal !== null && !isNaN(dxyVal) ? fmt(dxyVal, 3) : '—',
+                    trend: dxyTrend,
+                    trendArrow: dxyArrow,
                     impact: state.factors.dxy.impact,
                     signal: dxySig,
                     weight: '35%',
                     status: dxyVal !== null && !isNaN(dxyVal) ? 'ok' : 'err'
                 });
 
+                // Real Yield
                 let ryVal = null;
                 const dgs10 = state._dgs10Val;
                 const dfii10 = state._dfii10Val;
@@ -1844,28 +1963,36 @@
                     ryVal = state.fred.t10yie.value;
                 }
                 const rySource = (dgs10 !== null && dfii10 !== null) ? 'FRED DGS10−DFII10' : 'FRED T10YIE';
+                const ryTrend = state._trend.tnx; // using TNX trend as proxy for yield
+                const ryArrow = ryTrend === 'bullish' ? '↑' : (ryTrend === 'bearish' ? '↓' : '→');
                 rows.push({
                     name: 'Real Yield',
                     source: rySource,
                     value: ryVal !== null && !isNaN(ryVal) ? fmt(ryVal, 2) + '%' : '—',
+                    trend: ryTrend,
+                    trendArrow: ryArrow,
                     impact: state.factors.realYield.impact,
                     signal: state.factors.realYield.signal,
                     weight: '30%',
                     status: ryVal !== null && !isNaN(ryVal) ? 'ok' : 'err'
                 });
 
+                // CPI
                 const cpiVal = state._cpiaucslVal;
                 const cpiSource = state.fred.cpiaucsl ? 'FRED CPIAUCSL' : 'TradingEconomics (fallback)';
                 rows.push({
                     name: 'CPI (Inflation)',
                     source: cpiSource,
                     value: cpiVal !== null && !isNaN(cpiVal) ? fmt(cpiVal, 2) : '⏳ WAIT',
+                    trend: 'neutral',
+                    trendArrow: '→',
                     impact: state.factors.cpi.impact,
                     signal: state.factors.cpi.signal || 'neutral',
                     weight: '15%',
                     status: cpiVal !== null && !isNaN(cpiVal) ? 'ok' : 'wait'
                 });
 
+                // Risk
                 const audVal = state.yahoo.audusd?.price;
                 const vixVal = state._vixVal;
                 let riskDisplay = '';
@@ -1878,12 +2005,16 @@
                 const riskCombined = (state.factors.risk.signal === 'bullish' || state.factors.newsFear.signal === 'bullish') ?
                     'bullish' : (state.factors.risk.signal === 'bearish' || state.factors.newsFear.signal === 'bearish') ?
                     'bearish' : 'neutral';
+                const riskTrend = state._trend.vix; // using VIX trend as proxy
+                const riskArrow = riskTrend === 'bullish' ? '↑' : (riskTrend === 'bearish' ? '↓' : '→');
                 const riskOk = (audVal !== undefined && audVal !== null && !isNaN(audVal)) ||
                     (vixVal !== null && !isNaN(vixVal));
                 rows.push({
                     name: 'Risk (AUD/VIX)',
                     source: 'Yahoo AUDUSD=X + ^VIX',
                     value: riskDisplay,
+                    trend: riskTrend,
+                    trendArrow: riskArrow,
                     impact: state.factors.risk.impact + state.factors.newsFear.impact,
                     signal: riskCombined,
                     weight: '10% + 10%',
@@ -1898,6 +2029,7 @@
                     const impactClass = row.impact > 0 ? 'impact-bull' : (row.impact < 0 ? 'impact-bear' : 'impact-neutral');
                     const impactLabel = row.impact > 0 ? '+' + Math.round(row.impact) : (row.impact < 0 ? Math.round(row
                     .impact) : '0');
+                    const trendClass = row.trend === 'bullish' ? 'bull' : (row.trend === 'bearish' ? 'bear' : 'neutral');
                     const statusIcon = row.status === 'ok' ? '✅' : (row.status === 'wait' ? '⏳' : '⚠️');
                     html += `
                         <tr>
@@ -1906,6 +2038,7 @@
                                 <span class="source-ref">${row.source}</span>
                             </td>
                             <td>${row.value} <span style="font-size:10px;color:var(--text-muted);">${statusIcon}</span></td>
+                            <td><span class="trend-arrow ${trendClass}">${row.trendArrow}</span></td>
                             <td class="${impactClass}">${impactLabel}</td>
                             <td class="${sigClass}">${sigLabel}</td>
                             <td><span class="weight-badge">${row.weight}</span></td>
@@ -2080,12 +2213,10 @@
                 saveFredKeyBtn.addEventListener('click', saveFredKey);
                 fredKeyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveFredKey(); });
 
-                // Initial fetch
                 fetchAll().then(() => {
                     startTimer();
                 });
 
-                // Calendar refresh separately
                 setInterval(() => {
                     fetchCalendar().then(events => {
                         state.calendar = events;
@@ -2093,7 +2224,6 @@
                     }).catch(e => console.warn('Calendar auto-refresh error:', e));
                 }, CONFIG.refreshCalendarMs);
 
-                // Update clock
                 setInterval(() => {
                     if (state.lastUpdate) {
                         lastUpdated.textContent = 'Last updated: ' + state.lastUpdate.toLocaleTimeString('en-ZA', {
